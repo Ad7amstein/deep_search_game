@@ -207,7 +207,7 @@
     </main>
 
     <footer class="footer">
-      <span>Deep Search Challenge · static, offline, no backend</span>
+      <span>Deep Search Challenge · static build · online sync via Firebase when configured</span>
       <span id="footerVersion"></span>
     </footer>
   </div>
@@ -241,6 +241,27 @@
   <!-- Toasts + confetti layers -->
   <div class="toast-stack" id="toastStack" aria-live="polite"></div>
   <canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
+
+  <!-- ============================================================
+       ONLINE MULTIPLAYER (optional)
+       Paste your Firebase config below to let players join from other
+       devices. Without it the game still works, but only across tabs
+       of a single browser. Setup: https://console.firebase.google.com
+       → create project → Realtime Database → copy the web app config.
+       ============================================================ -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script>
+    window.FIREBASE_CONFIG = {
+      apiKey: "AIzaSyBph316ogtySbfTLl5seQqLUaIfFj9_-bo",
+      authDomain: "deep-search-game.firebaseapp.com",
+      databaseURL: "https://deep-search-game-default-rtdb.firebaseio.com",
+      projectId: "deep-search-game",
+      storageBucket: "deep-search-game.firebasestorage.app",
+      messagingSenderId: "910416372477",
+      appId: "1:910416372477:web:92090c5033d1c96d55d494"
+    };
+  </script>
 
   <script src="script.js"></script>
 </body>

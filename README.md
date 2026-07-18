@@ -40,13 +40,20 @@ Browsers block `fetch()` on `file://` URLs, so `game-data.json` cannot be read a
 5. The Planner works first. On submit, their output becomes the Searcher's input, and so on down the chain. Agents who are not active see a waiting screen and their own agent briefing.
 6. When the Reporter submits, the team sees **Mission Complete** with elapsed time, score and stars. When the timer expires, every input locks and unsubmitted stages score zero.
 
-### One important limitation
+### Playing across devices (online multiplayer)
 
-There is no server, so "multiplayer" means **one browser profile on one machine**. Session state lives in `localStorage` and syncs across tabs/windows of that browser via the `storage` event.
+Out of the box there is no server, so "multiplayer" means **one browser profile on one machine**: session state lives in `localStorage` and syncs across tabs via the `storage` event. That still suits the one-laptop-per-team workshop setup.
 
-That maps well onto the realistic workshop setup: **one laptop per team**, four students taking turns at it, passing the machine along as the pipeline advances. Each hands off, the next takes over — which is exactly the lesson.
+To let players join from **their own devices** (e.g. the GitHub Pages deployment), plug in a free Firebase Realtime Database:
 
-If you want teams on separate devices, that requires a backend (WebSocket or Firebase) and is out of scope for a static build.
+1. Go to [console.firebase.google.com](https://console.firebase.google.com) → **Add project** (Analytics not needed).
+2. In the project: **Build → Realtime Database → Create database** → start in **test mode** (or set rules to `{"rules": {"sessions": {".read": true, ".write": true}}}`).
+3. **Project settings → General → Your apps → Web app (</>)** → register an app and copy the config object.
+4. Paste it into the `window.FIREBASE_CONFIG = ...` block at the bottom of `index.html` (make sure it includes `databaseURL`), then redeploy.
+
+With that in place, *Create Session* produces a short **session code**; the admin's *Player link* button shares a `?s=CODE` URL, and *Join Session* on another device asks for the code. All game state syncs live through Firebase. Without a config, the game silently falls back to the original same-browser behaviour.
+
+Note: test-mode rules leave the database publicly writable — fine for a workshop game with throwaway data, not for anything sensitive.
 
 ---
 

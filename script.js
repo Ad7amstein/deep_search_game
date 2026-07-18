@@ -6,6 +6,7 @@
      1.  Utils          — small pure helpers
      2.  FX             — toasts, confetti, loading copy
      3.  DataLoader     — loads and validates game-data.json
+     3b. Net            — optional Firebase Realtime Database sync
      4.  Store          — session state, persistence, cross-tab sync
      5.  Identity       — who *this* browser is (player / admin)
      6.  Engine         — pipeline rules: whose turn is it, what may they see
@@ -14,7 +15,9 @@
      9.  Views          — pure render functions returning HTML strings
      10. App            — routing, event wiring, bootstrap
 
-   No framework, no build step, no backend. All state lives in localStorage.
+   No framework, no build step. State lives in localStorage; when a Firebase
+   config is present (see index.html) sessions also sync across devices
+   through Realtime Database, keyed by a short session code.
    ========================================================================== */
 (function () {
   'use strict';
@@ -35,6 +38,14 @@
 
     uid(prefix) {
       return (prefix || 'id') + '_' + Math.random().toString(36).slice(2, 9);
+    },
+
+    /** Short human-typeable session code (no ambiguous 0/O/1/I/L). */
+    sessionCode() {
+      const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+      let out = '';
+      for (let i = 0; i < 5; i++) out += chars[Math.floor(Math.random() * chars.length)];
+      return out;
     },
 
     clamp(n, min, max) {
@@ -240,10 +251,61 @@
   };
 
   /* ======================================================================
+     3b. NET — optional Firebase Realtime Database sync.
+     Enabled only when index.html defines window.FIREBASE_CONFIG and the SDK
+     loaded. Without it the game keeps its original same-browser behaviour.
+     ====================================================================== */
+  const Net = {
+    enabled: false,
+    db: null,
+    ref: null,   // the ref of the session this browser is attached to
+
+    init() {
+      const cfg = window.FIREBASE_CONFIG;
+      if (!window.firebase || !cfg || !cfg.databaseURL) return false;
+      try {
+        firebase.initializeApp(cfg);
+        this.db = firebase.database();
+        this.enabled = true;
+      } catch (err) {
+        console.warn('Firebase init failed — staying offline:', err);
+      }
+      return this.enabled;
+    },
+
+    cleanCode(code) {
+      return String(code || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    },
+
+    /** Follow a session: every remote change flows into Store.receive. */
+    attach(code) {
+      if (!this.enabled) return;
+      code = this.cleanCode(code);
+      if (!code) return;
+      this.detach();
+      this.ref = this.db.ref('sessions/' + code);
+      try { localStorage.setItem(Store.CODE_KEY, code); } catch (err) { /* ignore */ }
+      this.ref.on('value', (snap) => Store.receive(snap.val()));
+    },
+
+    detach() {
+      if (this.ref) this.ref.off();
+      this.ref = null;
+    },
+
+    /** One-shot lookup used before attaching to a code a player typed. */
+    peek(code) {
+      return this.db.ref('sessions/' + this.cleanCode(code)).once('value')
+        .then((snap) => snap.val());
+    }
+  };
+
+  /* ======================================================================
      4. STORE — session state + persistence + cross-tab sync
      ====================================================================== */
   const Store = {
     KEY: 'dsc:session:v1',
+    CODE_KEY: 'dsc:code:v1',
     session: null,
     listeners: [],
 
@@ -269,7 +331,43 @@
       } catch (err) {
         FX.toast('Storage is full or blocked — progress may not persist.', 'err');
       }
+      if (Net.ref) {
+        Net.ref.set(session).catch(() => FX.toast('Sync failed — check your connection.', 'err'));
+      }
       this.emit();
+    },
+
+    /** A remote snapshot arrived (or the session was deleted remotely). */
+    receive(remote) {
+      if (remote) {
+        this.session = this.normalize(remote);
+        try { localStorage.setItem(this.KEY, JSON.stringify(this.session)); } catch (err) { /* ignore */ }
+      } else {
+        this.session = null;
+        try {
+          localStorage.removeItem(this.KEY);
+          localStorage.removeItem(this.CODE_KEY);
+        } catch (err) { /* ignore */ }
+      }
+      this.emit();
+    },
+
+    /** Firebase strips nulls and empty arrays — reinstate the expected shape. */
+    normalize(session) {
+      if (!session) return session;
+      (session.teams = session.teams || []).forEach((team) => {
+        team.players = team.players || [];
+        team.players.forEach((p) => { if (p.role === undefined) p.role = null; });
+        team.stages = team.stages || {};
+        DataLoader.roleIds().forEach((roleId) => {
+          const stage = team.stages[roleId] = team.stages[roleId] || {};
+          if (!stage.selection) stage.selection = [];
+          if (stage.submittedAt === undefined) stage.submittedAt = null;
+          if (stage.score === undefined) stage.score = 0;
+          if (stage.detail === undefined) stage.detail = null;
+        });
+      });
+      return session;
     },
 
     /** Read-modify-write helper. Always re-reads first to reduce tab races. */
@@ -278,12 +376,31 @@
       if (!session) return null;
       mutator(session);
       session.updatedAt = Date.now();
-      this.write(session);
+      if (Net.ref) {
+        // Optimistic local apply; the transaction echo below is canonical.
+        this.session = session;
+        try { localStorage.setItem(this.KEY, JSON.stringify(session)); } catch (err) { /* ignore */ }
+        this.emit();
+        Net.ref.transaction((current) => {
+          if (!current) return;               // session was deleted remotely
+          const full = this.normalize(current);
+          mutator(full);
+          full.updatedAt = Date.now();
+          return full;
+        }).catch(() => FX.toast('Sync failed — check your connection.', 'err'));
+      } else {
+        this.write(session);
+      }
       return session;
     },
 
     clear() {
-      localStorage.removeItem(this.KEY);
+      if (Net.ref) Net.ref.remove();
+      Net.detach();
+      try {
+        localStorage.removeItem(this.KEY);
+        localStorage.removeItem(this.CODE_KEY);
+      } catch (err) { /* ignore */ }
       this.session = null;
       this.emit();
     },
@@ -292,6 +409,7 @@
       const roleIds = DataLoader.roleIds();
       const session = {
         id: Utils.uid('sess'),
+        code: Utils.sessionCode(),
         status: 'lobby',
         createdAt: Date.now(),
         startedAt: null,
@@ -311,6 +429,7 @@
           finalScore: null
         }))
       };
+      if (Net.enabled) Net.attach(session.code);
       this.write(session);
       return session;
     },
@@ -925,9 +1044,28 @@
 
       Store.read();
       Identity.load();
+      Net.init();
       this.bindEvents();
 
-      Store.subscribe(() => this.render());
+      // A ?s=CODE link (or a previously joined code) attaches to the online session.
+      const urlCode = new URLSearchParams(location.search).get('s');
+      this.autoJoin = !!urlCode && !Identity.isAdmin();
+      const code = urlCode || localStorage.getItem(Store.CODE_KEY);
+      if (Net.enabled && code) Net.attach(code);
+
+      Store.subscribe(() => {
+        // Heal local identity if the server-side player record changed (role races, resets).
+        const rec = Identity.record();
+        if (rec && Identity.me && (Identity.me.role || null) !== (rec.role || null)) {
+          Identity.save(Object.assign({}, Identity.me, { role: rec.role || null }));
+        }
+        if (this.autoJoin && Store.session && !Identity.me && !Identity.isAdmin()) {
+          this.autoJoin = false;
+          this.joinDraft = { teamId: null };
+          this.route = 'join';
+        }
+        this.render();
+      });
       Timer.start(() => this.handleExpiry());
 
       // Resume wherever this browser left off.
@@ -1055,10 +1193,14 @@
 
     createSession() {
       if (Store.session && !confirm('An existing session will be replaced. Continue?')) return;
-      Store.createSession(this.draftConfig);
+      const session = Store.createSession(this.draftConfig);
       Identity.setAdmin(true);
       Identity.clear();
-      FX.toast('Session created. Share the link with your agents.', 'ok');
+      if (Net.enabled) {
+        FX.toast('Session created. Code: ' + session.code + ' — share the player link.', 'ok');
+      } else {
+        FX.toast('Session created — but online sync is not configured, so players must use this same browser.', 'err');
+      }
       this.go('admin-dashboard');
     },
 
@@ -1086,7 +1228,7 @@
     },
 
     resetSession() {
-      if (!confirm('Reset and delete this session for every tab on this browser?')) return;
+      if (!confirm('Reset and delete this session for every connected player?')) return;
       Store.clear();
       Identity.clear();
       Identity.setAdmin(false);
@@ -1095,7 +1237,10 @@
     },
 
     copyPlayerLink() {
-      const url = location.href.split('#')[0];
+      const base = location.origin + location.pathname;
+      const url = Store.session && Store.session.code && Net.enabled
+        ? base + '?s=' + Store.session.code
+        : base;
       const done = () => FX.toast('Player link copied: ' + url, 'ok');
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(url).then(done, () => FX.toast(url));
@@ -1108,11 +1253,33 @@
 
     openJoin() {
       if (!Store.read()) {
-        FX.toast('No session exists yet. Ask the admin to create one.', 'err');
+        if (Net.enabled) {
+          // ponytail: prompt() over a code-entry screen — matches the confirm() idiom here.
+          const code = prompt('Enter the session code from your host (e.g. ABC23):');
+          if (code) this.connect(code);
+        } else {
+          FX.toast('No session exists yet. Ask the admin to create one.', 'err');
+        }
         return;
       }
       this.joinDraft = { teamId: null };
       this.go('join');
+    },
+
+    /** Look up a typed session code, then follow that session. */
+    connect(code) {
+      code = Net.cleanCode(code);
+      if (!code) return;
+      FX.toast('Looking up session ' + code + '…');
+      Net.peek(code).then((session) => {
+        if (!session) {
+          FX.toast('No session found with code ' + code + '.', 'err');
+          return;
+        }
+        Net.attach(code);
+        this.joinDraft = { teamId: null };
+        this.go('join');
+      }).catch(() => FX.toast('Could not reach the server. Check your connection.', 'err'));
     },
 
     refreshJoinButton() {
@@ -1140,7 +1307,9 @@
 
       const player = { id: Utils.uid('p'), name, role: null, joinedAt: Date.now() };
       Store.update((s) => {
-        s.teams.find((t) => t.id === teamId).players.push(player);
+        const t = s.teams.find((x) => x.id === teamId);
+        if (t.players.length >= s.maxPlayers) return;   // capacity race across devices
+        t.players.push(player);
       });
       Identity.save({ id: player.id, name, teamId, role: null });
       FX.toast(`Welcome aboard, ${name}. Pick your agent.`, 'ok');
@@ -1182,6 +1351,7 @@
 
       Store.update((s) => {
         const t = s.teams.find((x) => x.id === me.teamId);
+        if (t.players.some((p) => p.role === roleId && p.id !== me.id)) return;   // role race
         const player = t.players.find((p) => p.id === me.id);
         if (player) player.role = roleId;
       });
@@ -1328,7 +1498,8 @@
         running: 'Pipeline running. Agents are working through their stages.',
         ended: 'Session complete. Final results below.'
       }[session.status];
-      $('#dashStatus').textContent = status;
+      const codeLabel = Net.enabled && session.code ? 'Session code: ' + session.code + ' · ' : '';
+      $('#dashStatus').textContent = codeLabel + status;
 
       $('#btnStartGame').disabled = session.status !== 'lobby';
       $('#btnStartGame').textContent = session.status === 'lobby' ? '▶ Start Game'
@@ -1487,5 +1658,8 @@
   };
 
   /* ---------- go ---------- */
+  // Debug/console handle (also used by test_sync.js).
+  window.__DSC = { Utils, Store, Net, Identity, DataLoader };
+
   document.addEventListener('DOMContentLoaded', () => App.init());
 })();
