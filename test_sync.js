@@ -68,4 +68,16 @@ Store.update((s) => {
 });
 assert.strictEqual(Store.session.teams[0].players.length, 1, 'join works after round-trip');
 
+// Results stay hidden until the admin releases them.
+const { Identity, App } = window.__DSC;
+Identity.save({ id: 'p_test', name: 'Nour', teamId: 'team_0', role: 'planner' });
+Store.update((s) => {
+  DataLoader.roleIds().forEach((rid) => { s.teams[0].stages[rid].submittedAt = Date.now(); });
+  s.status = 'ended';
+  s.endedAt = Date.now();
+});
+assert.strictEqual(App.resolvePlayerScreen(), 'briefing', 'results hidden before release');
+Store.update((s) => { s.resultsReleasedAt = Date.now(); });
+assert.strictEqual(App.resolvePlayerScreen(), 'results', 'results visible after release');
+
 console.log('test_sync.js: all checks passed');

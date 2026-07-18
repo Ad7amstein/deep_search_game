@@ -411,6 +411,7 @@
         id: Utils.uid('sess'),
         code: Utils.sessionCode(),
         status: 'lobby',
+        resultsReleasedAt: null,
         createdAt: Date.now(),
         startedAt: null,
         endedAt: null,
@@ -946,25 +947,6 @@
       }).join('')}</div>`;
     },
 
-    /** Post-submission review: what was right, wrong, and missed. */
-    reviewGrid(roleId, cards, detail) {
-      return `<div class="card-grid">${cards.map((card) => {
-        const cls = detail.hitIds.includes(card.id) ? 'is-correct'
-          : detail.wrongIds.includes(card.id) ? 'is-wrong'
-            : detail.missedIds.includes(card.id) ? 'is-missed' : '';
-        const mark = cls === 'is-correct' ? '✓' : cls === 'is-wrong' ? '✕' : cls === 'is-missed' ? '!' : '';
-        if (!cls) return '';
-        return `
-          <div class="pick ${cls}">
-            <span class="pick__box" style="border:none;color:inherit;font-size:1rem">${mark}</span>
-            ${card.icon ? `<span class="pick__icon">${esc(card.icon)}</span>` : ''}
-            <span class="pick__label">${esc(card.label)}
-              <span class="pick__hint">${cls === 'is-correct' ? 'Correct pick' : cls === 'is-wrong' ? 'Not appropriate here' : 'You missed this one'}</span>
-            </span>
-          </div>`;
-      }).join('')}</div>`;
-    },
-
     /* ---- results ---- */
 
     resultBreakdown(team) {
@@ -1089,6 +1071,7 @@
       $('#btnCreateSession').addEventListener('click', () => this.createSession());
       $('#btnShuffleRequests').addEventListener('click', () => this.shuffleRequests());
       $('#btnStartGame').addEventListener('click', () => this.startGame());
+      $('#btnReleaseResults').addEventListener('click', () => this.releaseResults());
       $('#btnResetSession').addEventListener('click', () => this.resetSession());
       $('#btnCopyLink').addEventListener('click', () => this.copyPlayerLink());
       $('#btnJoinTeam').addEventListener('click', () => this.joinTeam());
@@ -1224,6 +1207,14 @@
         s.endedAt = null;
       });
       FX.toast('Pipeline activated. Timer running ⏱️', 'ok');
+      this.render();
+    },
+
+    releaseResults() {
+      const session = Store.session;
+      if (!session || session.status !== 'ended' || session.resultsReleasedAt) return;
+      Store.update((s) => { s.resultsReleasedAt = Date.now(); });
+      FX.toast('Results are live for every agent. 📣', 'ok');
       this.render();
     },
 
@@ -1418,7 +1409,7 @@
 
       this.selection = [];
       const role = DataLoader.role(roleId);
-      FX.toast(`${role.output} handed off · ${detail.score}/25 points`, detail.score >= 18 ? 'ok' : null);
+      FX.toast(`${role.output} handed off ✔`, 'ok');
 
       const fresh = Store.team(team.id);
       if (Engine.isTeamComplete(fresh)) FX.confetti(3400);
@@ -1482,7 +1473,10 @@
       if (!me.role) return 'role-select';
 
       const session = Store.session;
-      if (Engine.isTeamComplete(team) || session.status === 'ended') return 'results';
+      if (Engine.isTeamComplete(team) || session.status === 'ended') {
+        // Scores stay hidden until the admin releases the results.
+        return session.resultsReleasedAt ? 'results' : 'briefing';
+      }
       if (session.status === 'running' && Engine.currentRole(team) === me.role) return 'stage';
       return 'briefing';
     },
@@ -1504,6 +1498,12 @@
       $('#btnStartGame').disabled = session.status !== 'lobby';
       $('#btnStartGame').textContent = session.status === 'lobby' ? '▶ Start Game'
         : session.status === 'running' ? '⏱ Running…' : '✓ Finished';
+
+      const released = !!session.resultsReleasedAt;
+      const btnRelease = $('#btnReleaseResults');
+      btnRelease.hidden = session.status !== 'ended';
+      btnRelease.disabled = released;
+      btnRelease.textContent = released ? '✓ Results released' : '📣 Release Results';
     },
 
     renderJoin() {
@@ -1549,20 +1549,24 @@
           'Standing by for launch',
           'The admin has not started the session yet. ' + role.loadingMessage
         );
+      } else if (session.status === 'ended' || Engine.isTeamComplete(team)) {
+        // Run is over but results are not released yet — reveal nothing.
+        body = Views.waiting(
+          Engine.isTeamComplete(team) ? 'Mission complete 🏁' : 'Time expired ⏰',
+          'All submissions are in. Waiting for the host to reveal the results…'
+        );
       } else if (stage.submittedAt) {
-        const cards = Engine.cardsFor(team, me.role);
         body = `
           <div class="stage-head" style="margin-top:26px">
             <div class="stage-head__left">
               <span class="stage-head__icon">✅</span>
               <div>
                 <div class="stage-head__name">${esc(role.output)} delivered</div>
-                <p class="stage-head__mission">You scored ${stage.score}/25. Downstream agents are working with your output now.</p>
+                <p class="stage-head__mission">Downstream agents are working with your output now. Scores are revealed when the host publishes the results.</p>
               </div>
             </div>
-            <span class="stage-head__counter">${stage.detail.hits}/${stage.detail.total} correct</span>
+            <span class="stage-head__counter">${stage.selection.length} picks submitted</span>
           </div>
-          ${Views.reviewGrid(me.role, cards, stage.detail)}
           ${Views.waiting('Pipeline in progress', 'Waiting for the remaining agents to finish. ' + FX.randomLoadingMessage())}`;
       } else {
         const activeRole = DataLoader.role(Engine.currentRole(team));
@@ -1659,7 +1663,7 @@
 
   /* ---------- go ---------- */
   // Debug/console handle (also used by test_sync.js).
-  window.__DSC = { Utils, Store, Net, Identity, DataLoader };
+  window.__DSC = { Utils, Store, Net, Identity, DataLoader, App };
 
   document.addEventListener('DOMContentLoaded', () => App.init());
 })();

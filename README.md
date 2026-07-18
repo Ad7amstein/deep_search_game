@@ -38,7 +38,7 @@ Browsers block `fetch()` on `file://` URLs, so `game-data.json` cannot be read a
 3. Inside a team each player claims **one** role. Roles are exclusive — first come, first served.
 4. Admin presses **Start Game**. One shared timer begins for everyone.
 5. The Planner works first. On submit, their output becomes the Searcher's input, and so on down the chain. Agents who are not active see a waiting screen and their own agent briefing.
-6. When the Reporter submits, the team sees **Mission Complete** with elapsed time, score and stars. When the timer expires, every input locks and unsubmitted stages score zero.
+6. When the Reporter submits (or the timer expires, locking every input), players see a **"waiting for the host"** screen. Scores stay hidden — no per-stage feedback, no leaderboard — until the admin presses **📣 Release Results**, at which point every player's screen flips to their team's score, stars and breakdown.
 
 ### Playing across devices (online multiplayer)
 
