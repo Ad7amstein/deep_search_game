@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deep Search Challenge — AI Agent Workflow Game</title>
+  <meta name="description" content="An interactive workshop game that teaches how a Deep Search AI agent pipeline works." />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔎</text></svg>" />
+</head>
+<body>
+
+  <!-- ============================================================
+       APP SHELL
+       ============================================================ -->
+  <div id="app" class="app" hidden>
+
+    <!-- Global top bar: brand + pipeline + timer -->
+    <header class="topbar" id="topbar">
+      <div class="topbar__brand" data-action="go-landing" role="button" tabindex="0">
+        <span class="topbar__logo">🔎</span>
+        <span class="topbar__title">Deep Search <em>Challenge</em></span>
+      </div>
+
+      <!-- Pipeline visualisation (populated from roles in game-data.json) -->
+      <nav class="pipeline" id="pipeline" aria-label="Agent pipeline"></nav>
+
+      <div class="topbar__right">
+        <div class="timer" id="timer" hidden>
+          <span class="timer__label">Time left</span>
+          <span class="timer__value" id="timerValue">--:--</span>
+        </div>
+        <button class="btn btn--ghost btn--sm" id="btnExit" hidden>Leave</button>
+      </div>
+    </header>
+
+    <!-- Screens are swapped by the router; only one is visible at a time -->
+    <main class="screens" id="screens">
+
+      <!-- ---------- LANDING ---------- -->
+      <section class="screen" data-screen="landing">
+        <div class="hero">
+          <div class="hero__badge">Workshop Mode · 4 Agents · 1 Pipeline</div>
+          <h1 class="hero__title">Become the <em>Deep Search</em> workflow.</h1>
+          <p class="hero__sub">
+            Four teammates. Four AI agents. Each one only sees what the agent before them produced.
+            Plan it, search it, validate it, report it — before the clock runs out.
+          </p>
+
+          <div class="hero__actions">
+            <button class="btn btn--primary btn--lg" data-action="admin-setup">
+              <span>⚙️</span> Create Session <small>Admin</small>
+            </button>
+            <button class="btn btn--outline btn--lg" data-action="join">
+              <span>🎮</span> Join Session <small>Player</small>
+            </button>
+            <button class="btn btn--ghost btn--lg" data-action="howto">
+              <span>📖</span> How to Play
+            </button>
+          </div>
+
+          <div class="hero__pipeline" id="heroPipeline"></div>
+        </div>
+      </section>
+
+      <!-- ---------- HOW TO PLAY ---------- -->
+      <section class="screen" data-screen="howto">
+        <div class="panel panel--wide">
+          <h2 class="panel__title">How to Play</h2>
+          <div class="howto-grid" id="howtoRoles"></div>
+
+          <div class="rules">
+            <h3>The rules of the pipeline</h3>
+            <ol>
+              <li>Each team is one sequential AI workflow. Each player is one agent.</li>
+              <li>An agent sees <strong>only</strong> its own instructions and the output of the agent before it.</li>
+              <li>Nobody can skip ahead. The Searcher cannot start until the Planner submits.</li>
+              <li>The whole team shares <strong>one timer</strong>. When it expires, every input locks.</li>
+              <li>Each stage is worth 25 points. Wrong selections cost you. Speed earns a bonus.</li>
+            </ol>
+          </div>
+
+          <button class="btn btn--outline" data-action="go-landing">← Back</button>
+        </div>
+      </section>
+
+      <!-- ---------- ADMIN: SETUP ---------- -->
+      <section class="screen" data-screen="admin-setup">
+        <div class="panel panel--wide">
+          <h2 class="panel__title">Create a Session</h2>
+          <p class="panel__sub">Configure the run, then assign a research request to every team.</p>
+
+          <form class="form-grid" id="setupForm">
+            <label class="field">
+              <span class="field__label">Number of teams</span>
+              <input class="input" type="number" id="cfgTeams" min="1" max="12" />
+            </label>
+            <label class="field">
+              <span class="field__label">Max players per team</span>
+              <input class="input" type="number" id="cfgMaxPlayers" min="1" max="4" />
+            </label>
+            <label class="field">
+              <span class="field__label">Activity duration (minutes)</span>
+              <input class="input" type="number" id="cfgDuration" min="1" max="60" />
+            </label>
+          </form>
+
+          <h3 class="section-heading">Team assignments</h3>
+          <div class="team-config" id="teamConfig"></div>
+
+          <div class="row-actions">
+            <button class="btn btn--ghost" data-action="go-landing">← Cancel</button>
+            <button class="btn btn--outline" id="btnShuffleRequests">🎲 Shuffle requests</button>
+            <button class="btn btn--primary" id="btnCreateSession">Create Session →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- ADMIN: DASHBOARD ---------- -->
+      <section class="screen" data-screen="admin-dashboard">
+        <div class="panel panel--wide">
+          <div class="dash-head">
+            <div>
+              <h2 class="panel__title">Control Center</h2>
+              <p class="panel__sub" id="dashStatus">Waiting for agents to join…</p>
+            </div>
+            <div class="dash-actions">
+              <button class="btn btn--outline btn--sm" id="btnCopyLink">🔗 Player link</button>
+              <button class="btn btn--primary" id="btnStartGame">▶ Start Game</button>
+              <button class="btn btn--danger btn--sm" id="btnResetSession">Reset</button>
+            </div>
+          </div>
+
+          <div class="stat-row" id="dashStats"></div>
+          <div class="team-grid" id="dashTeams"></div>
+
+          <h3 class="section-heading">Leaderboard</h3>
+          <div id="dashLeaderboard"></div>
+        </div>
+      </section>
+
+      <!-- ---------- PLAYER: JOIN ---------- -->
+      <section class="screen" data-screen="join">
+        <div class="panel">
+          <h2 class="panel__title">Join a Session</h2>
+          <p class="panel__sub">Pick your team and become an autonomous agent.</p>
+
+          <label class="field">
+            <span class="field__label">Your name</span>
+            <input class="input" type="text" id="joinName" placeholder="e.g. Nour" maxlength="24" autocomplete="off" />
+          </label>
+
+          <span class="field__label">Choose a team</span>
+          <div class="team-pick" id="joinTeams"></div>
+
+          <p class="form-error" id="joinError" hidden></p>
+
+          <div class="row-actions">
+            <button class="btn btn--ghost" data-action="go-landing">← Back</button>
+            <button class="btn btn--primary" id="btnJoinTeam" disabled>Join Team</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- PLAYER: ROLE SELECTION ---------- -->
+      <section class="screen" data-screen="role-select">
+        <div class="panel panel--wide">
+          <h2 class="panel__title">Choose your agent</h2>
+          <p class="panel__sub" id="roleSelectSub">Only one player can own each role.</p>
+          <div class="role-grid" id="roleGrid"></div>
+          <div class="row-actions">
+            <button class="btn btn--ghost" id="btnLeaveTeam">← Leave team</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- PLAYER: ROLE BRIEFING / WAITING ---------- -->
+      <section class="screen" data-screen="briefing">
+        <div class="panel panel--wide">
+          <div id="briefingCard"></div>
+          <div id="briefingStatus"></div>
+        </div>
+      </section>
+
+      <!-- ---------- PLAYER: ACTIVE STAGE ---------- -->
+      <section class="screen" data-screen="stage">
+        <div class="panel panel--wide">
+          <div class="stage-head" id="stageHead"></div>
+          <div class="stage-input" id="stageInput"></div>
+          <div class="stage-board" id="stageBoard"></div>
+          <div class="stage-foot" id="stageFoot"></div>
+        </div>
+      </section>
+
+      <!-- ---------- RESULTS ---------- -->
+      <section class="screen" data-screen="results">
+        <div class="panel panel--wide">
+          <div id="resultsBody"></div>
+          <h3 class="section-heading">Leaderboard</h3>
+          <div id="resultsLeaderboard"></div>
+          <div class="row-actions">
+            <button class="btn btn--outline" data-action="go-landing">← Home</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <span>Deep Search Challenge · static, offline, no backend</span>
+      <span id="footerVersion"></span>
+    </footer>
+  </div>
+
+  <!-- ============================================================
+       BOOT / ERROR SCREEN (shown before game-data.json resolves)
+       ============================================================ -->
+  <div id="boot" class="boot">
+    <div class="boot__inner">
+      <div class="boot__spinner" aria-hidden="true"></div>
+      <h1 class="boot__title">Deep Search Challenge</h1>
+      <p class="boot__msg" id="bootMsg">Loading agent configuration…</p>
+
+      <!-- Fallback for file:// where fetch() is blocked by the browser -->
+      <div class="boot__fallback" id="bootFallback" hidden>
+        <p class="boot__hint">
+          Your browser blocked reading <code>game-data.json</code> from the local filesystem.
+          Either serve the folder over HTTP, or load the file manually below.
+        </p>
+        <label class="btn btn--primary">
+          📁 Select game-data.json
+          <input type="file" id="bootFile" accept=".json,application/json" hidden />
+        </label>
+        <p class="boot__hint boot__hint--dim">
+          Tip: <code>python -m http.server</code> in this folder, then open <code>localhost:8000</code>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toasts + confetti layers -->
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+  <canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+{
+  "meta": {
+    "title": "Deep Search Challenge",
+    "tagline": "An interactive AI agent workflow simulation",
+    "version": "1.0.0"
+  },
+
+  "settings": {
+    "defaultTeams": 4,
+    "maxPlayersPerTeam": 4,
+    "defaultDurationMinutes": 5,
+    "cardsPerStage": 12,
+    "scoring": {
+      "pointsPerStage": 25,
+      "wrongSelectionPenaltyWeight": 0.75,
+      "orderBonusStage": "reporter",
+      "maxTimeBonus": 10,
+      "maxScore": 100,
+      "stars": [
+        { "min": 90, "stars": 3 },
+        { "min": 70, "stars": 2 },
+        { "min": 45, "stars": 1 },
+        { "min": 0, "stars": 0 }
+      ]
+    }
+  },
+
+  "roles": [
+    {
+      "id": "planner",
+      "order": 1,
+      "name": "Planner Agent",
+      "icon": "🧭",
+      "avatar": "🤖",
+      "description": "The strategist of the swarm. Turns a vague human question into an executable research strategy.",
+      "goal": "Break the research problem into a logical search strategy.",
+      "mission": "Select the steps that form the strongest possible search plan.",
+      "input": "Research Question",
+      "output": "Search Plan",
+      "quote": "I don't Google. I Google what should be Googled.",
+      "loadingMessage": "Thinking before searching...",
+      "funMessages": [
+        "Drawing arrows between boxes...",
+        "Refusing to search until the plan is beautiful.",
+        "Strategy first. Panic later."
+      ]
+    },
+    {
+      "id": "searcher",
+      "order": 2,
+      "name": "Searcher Agent",
+      "icon": "🔎",
+      "avatar": "🛰️",
+      "description": "The field operative. Executes the plan across the open web and pulls back raw sources.",
+      "goal": "Retrieve the highest quality sources that satisfy the plan.",
+      "mission": "Pick the sources a serious researcher would actually open.",
+      "input": "Search Plan",
+      "output": "Collected Sources",
+      "quote": "Searching the internet... definitely not opening Reddit first.",
+      "loadingMessage": "Crawling the open web...",
+      "funMessages": [
+        "Opening 47 tabs. Closing 46.",
+        "Page 2 of the results exists. I checked.",
+        "Ignoring the sponsored links like a professional."
+      ]
+    },
+    {
+      "id": "validator",
+      "order": 3,
+      "name": "Validator Agent",
+      "icon": "🛡️",
+      "avatar": "⚖️",
+      "description": "The skeptic. Assumes every source is guilty of being wrong until proven otherwise.",
+      "goal": "Filter the collected sources down to what can actually be trusted.",
+      "mission": "Apply the validation checks that matter for this question.",
+      "input": "Collected Sources",
+      "output": "Validated Evidence",
+      "quote": "Trust... but verify. Mostly verify.",
+      "loadingMessage": "Cross-examining the evidence...",
+      "funMessages": [
+        "This blog post is not a peer-reviewed journal.",
+        "Checking the date. Always checking the date.",
+        "Confidence is not a citation."
+      ]
+    },
+    {
+      "id": "reporter",
+      "order": 4,
+      "name": "Reporter Agent",
+      "icon": "📝",
+      "avatar": "📊",
+      "description": "The closer. Assembles validated evidence into something a human will actually read.",
+      "goal": "Structure the findings into a clear, defensible report.",
+      "mission": "Choose the right sections and put them in the right order.",
+      "input": "Validated Evidence",
+      "output": "Final Report",
+      "quote": "Turning chaos into PowerPoint since 2023.",
+      "loadingMessage": "Assembling the final report...",
+      "funMessages": [
+        "Executive summary: it depends.",
+        "Adding a chart nobody asked for.",
+        "Making the conclusion sound inevitable."
+      ]
+    }
+  ],
+
+  "plannerSteps": [
+    { "id": "p_topic", "label": "Identify the core topic", "hint": "Define exactly what is being asked" },
+    { "id": "p_questions", "label": "Break into sub-questions", "hint": "Decompose before searching" },
+    { "id": "p_authoritative", "label": "Find authoritative sources", "hint": "Prefer primary and institutional sources" },
+    { "id": "p_viewpoints", "label": "Compare opposing viewpoints", "hint": "Balance the argument" },
+    { "id": "p_recency", "label": "Check recency of information", "hint": "Is this still true today?" },
+    { "id": "p_evidence", "label": "Verify evidence behind claims", "hint": "Claim without data is opinion" },
+    { "id": "p_primary", "label": "Locate primary sources", "hint": "Go to the original document" },
+    { "id": "p_crosscheck", "label": "Cross-check facts across sources", "hint": "Two independent confirmations" },
+    { "id": "p_bias", "label": "Note conflicts of interest", "hint": "Who benefits from this claim?" },
+    { "id": "p_timeframe", "label": "Scope the timeframe", "hint": "Bound the period under study" },
+    { "id": "p_quant", "label": "Collect quantitative data", "hint": "Numbers beat adjectives" },
+    { "id": "p_official", "label": "Review official statements and records", "hint": "Straight from the institution" },
+    { "id": "p_experts", "label": "Consult domain experts", "hint": "People who do this for a living" },
+    { "id": "p_legal", "label": "Read the regulatory or legal text", "hint": "The law says what it says" },
+    { "id": "p_context", "label": "Establish historical context", "hint": "How did we get here?" },
+    { "id": "p_summarize", "label": "Summarize findings neutrally", "hint": "Report, don't campaign" },
+    { "id": "p_reddit_only", "label": "Search Reddit only", "hint": "", "trap": true },
+    { "id": "p_ignore_dates", "label": "Ignore dates entirely", "hint": "", "trap": true },
+    { "id": "p_random_blogs", "label": "Use random blogs as the main source", "hint": "", "trap": true },
+    { "id": "p_first_result", "label": "Trust the first search result", "hint": "", "trap": true },
+    { "id": "p_agree_only", "label": "Keep only sources that agree with me", "hint": "", "trap": true },
+    { "id": "p_skip_verify", "label": "Skip verification to save time", "hint": "", "trap": true },
+    { "id": "p_ask_friend", "label": "Ask a friend on WhatsApp", "hint": "", "trap": true },
+    { "id": "p_yt_comments", "label": "Read the YouTube comments", "hint": "", "trap": true }
+  ],
+
+  "sources": [
+    { "id": "s_official", "label": "Official Website", "icon": "🏛️" },
+    { "id": "s_gov", "label": "Government Report", "icon": "📋" },
+    { "id": "s_paper", "label": "Research Paper", "icon": "🔬" },
+    { "id": "s_journal", "label": "Peer-Reviewed Journal", "icon": "📚" },
+    { "id": "s_news", "label": "Reputable News Agency", "icon": "📰" },
+    { "id": "s_wikipedia", "label": "Wikipedia", "icon": "🌐" },
+    { "id": "s_company", "label": "Company Website", "icon": "🏢" },
+    { "id": "s_pressrelease", "label": "Press Release", "icon": "📢" },
+    { "id": "s_court", "label": "Court / Legal Document", "icon": "⚖️" },
+    { "id": "s_standards", "label": "Standards Body Publication", "icon": "📐" },
+    { "id": "s_ngo", "label": "NGO / Think Tank Report", "icon": "🕊️" },
+    { "id": "s_expert", "label": "Expert Interview", "icon": "🎓" },
+    { "id": "s_book", "label": "Published Book", "icon": "📖" },
+    { "id": "s_federation", "label": "Sports Federation Records", "icon": "🏟️" },
+    { "id": "s_stats", "label": "Statistical Database", "icon": "📈" },
+    { "id": "s_stackoverflow", "label": "Stack Overflow", "icon": "💻" },
+    { "id": "s_docs", "label": "Technical Documentation", "icon": "📄" },
+    { "id": "s_benchmark", "label": "Independent Benchmark", "icon": "⏱️" },
+    { "id": "s_reddit", "label": "Reddit Thread", "icon": "👽", "trap": true },
+    { "id": "s_blog", "label": "Random Blog", "icon": "✍️", "trap": true },
+    { "id": "s_tiktok", "label": "TikTok Video", "icon": "🎵", "trap": true },
+    { "id": "s_youtube", "label": "Random YouTube Video", "icon": "▶️", "trap": true },
+    { "id": "s_forum", "label": "Anonymous Forum", "icon": "💬", "trap": true },
+    { "id": "s_satire", "label": "Satire Website", "icon": "🃏", "trap": true },
+    { "id": "s_socialpost", "label": "Viral Social Media Post", "icon": "📱", "trap": true },
+    { "id": "s_ad", "label": "Sponsored Advertorial", "icon": "💸", "trap": true },
+    { "id": "s_chain", "label": "Forwarded WhatsApp Message", "icon": "📨", "trap": true }
+  ],
+
+  "validationCriteria": [
+    { "id": "v_relevant", "label": "Relevant to the question", "icon": "🎯" },
+    { "id": "v_recent", "label": "Recent / up to date", "icon": "🕐" },
+    { "id": "v_credible", "label": "Credible publisher", "icon": "🏅" },
+    { "id": "v_multiple", "label": "Confirmed by multiple sources", "icon": "🔗" },
+    { "id": "v_evidence", "label": "Evidence provided", "icon": "🧾" },
+    { "id": "v_official", "label": "Official / primary source", "icon": "🏛️" },
+    { "id": "v_peer", "label": "Peer reviewed", "icon": "🔬" },
+    { "id": "v_method", "label": "Methodology is transparent", "icon": "🧪" },
+    { "id": "v_author", "label": "Named, qualified author", "icon": "✒️" },
+    { "id": "v_data", "label": "Data and figures cited", "icon": "📊" },
+    { "id": "v_neutral", "label": "Neutral, non-promotional tone", "icon": "⚖️" },
+    { "id": "v_consensus", "label": "Matches expert consensus", "icon": "🧠" },
+    { "id": "v_outdated", "label": "Outdated information", "icon": "🗓️", "trap": true },
+    { "id": "v_duplicate", "label": "Duplicate of another source", "icon": "📑", "trap": true },
+    { "id": "v_opinion", "label": "Opinion only", "icon": "🗣️", "trap": true },
+    { "id": "v_ad", "label": "Advertisement in disguise", "icon": "💸", "trap": true },
+    { "id": "v_anon", "label": "Anonymous author", "icon": "🕶️", "trap": true },
+    { "id": "v_clickbait", "label": "Clickbait headline", "icon": "🎣", "trap": true },
+    { "id": "v_unsourced", "label": "Unsourced claim", "icon": "❓", "trap": true },
+    { "id": "v_popular", "label": "Has lots of likes", "icon": "❤️", "trap": true }
+  ],
+
+  "reportSections": [
+    { "id": "r_summary", "label": "Executive Summary", "icon": "📌" },
+    { "id": "r_background", "label": "Background", "icon": "🗂️" },
+    { "id": "r_method", "label": "Methodology", "icon": "🧪" },
+    { "id": "r_findings", "label": "Key Findings", "icon": "💡" },
+    { "id": "r_evidence", "label": "Evidence", "icon": "🧾" },
+    { "id": "r_analysis", "label": "Analysis", "icon": "📈" },
+    { "id": "r_timeline", "label": "Timeline", "icon": "⏳" },
+    { "id": "r_limitations", "label": "Limitations", "icon": "⚠️" },
+    { "id": "r_conclusion", "label": "Conclusion", "icon": "✅" },
+    { "id": "r_recommendations", "label": "Recommendations", "icon": "🚀" },
+    { "id": "r_sources", "label": "Sources", "icon": "🔗" },
+    { "id": "r_random", "label": "Random Facts", "icon": "🎲", "trap": true },
+    { "id": "r_trivia", "label": "Trivia Corner", "icon": "🎯", "trap": true },
+    { "id": "r_memes", "label": "Meme Gallery", "icon": "😂", "trap": true },
+    { "id": "r_rant", "label": "Personal Rant", "icon": "🔥", "trap": true },
+    { "id": "r_ads", "label": "Partner Offers", "icon": "📣", "trap": true }
+  ],
+
+  "researchRequests": [
+    {
+      "id": "req_egypt_argentina",
+      "question": "Was the refereeing unfair in the Egypt vs Argentina match?",
+      "context": "A contested result has split social media. Determine what actually happened on the pitch.",
+      "difficulty": "medium",
+      "correctPlan": ["p_topic", "p_official", "p_evidence", "p_viewpoints", "p_crosscheck", "p_bias"],
+      "correctSources": ["s_federation", "s_official", "s_news", "s_expert", "s_stats"],
+      "correctValidation": ["v_relevant", "v_official", "v_evidence", "v_multiple", "v_neutral"],
+      "correctReport": ["r_summary", "r_background", "r_findings", "r_evidence", "r_conclusion", "r_sources"]
+    },
+    {
+      "id": "req_earth_shape",
+      "question": "Is the Earth round or flat?",
+      "context": "A settled scientific question that still generates noise online.",
+      "difficulty": "easy",
+      "correctPlan": ["p_topic", "p_authoritative", "p_evidence", "p_primary", "p_crosscheck", "p_summarize"],
+      "correctSources": ["s_journal", "s_paper", "s_gov", "s_official", "s_book"],
+      "correctValidation": ["v_credible", "v_peer", "v_evidence", "v_consensus", "v_method"],
+      "correctReport": ["r_summary", "r_findings", "r_evidence", "r_conclusion", "r_sources"]
+    },
+    {
+      "id": "req_elon_musk",
+      "question": "Who is Elon Musk and what is he currently responsible for?",
+      "context": "Build an accurate, current profile of a public figure.",
+      "difficulty": "easy",
+      "correctPlan": ["p_topic", "p_official", "p_recency", "p_crosscheck", "p_bias", "p_summarize"],
+      "correctSources": ["s_company", "s_official", "s_news", "s_wikipedia", "s_pressrelease"],
+      "correctValidation": ["v_relevant", "v_recent", "v_credible", "v_multiple", "v_neutral"],
+      "correctReport": ["r_summary", "r_background", "r_findings", "r_timeline", "r_conclusion", "r_sources"]
+    },
+    {
+      "id": "req_elsewedy",
+      "question": "What is Elsewedy Electric and what does the company actually do?",
+      "context": "Corporate research brief for a new joiner.",
+      "difficulty": "easy",
+      "correctPlan": ["p_topic", "p_official", "p_quant", "p_recency", "p_crosscheck", "p_summarize"],
+      "correctSources": ["s_company", "s_official", "s_pressrelease", "s_news", "s_stats"],
+      "correctValidation": ["v_relevant", "v_official", "v_recent", "v_data", "v_multiple"],
+      "correctReport": ["r_summary", "r_background", "r_findings", "r_evidence", "r_conclusion", "r_sources"]
+    },
+    {
+      "id": "req_ev_vs_gas",
+      "question": "Should electric vehicles fully replace gasoline cars?",
+      "context": "A policy debate with strong lobbying on both sides.",
+      "difficulty": "hard",
+      "correctPlan": ["p_topic", "p_questions", "p_viewpoints", "p_quant", "p_bias", "p_recency", "p_evidence"],
+      "correctSources": ["s_paper", "s_gov", "s_stats", "s_ngo", "s_journal", "s_news"],
+      "correctValidation": ["v_relevant", "v_recent", "v_data", "v_neutral", "v_multiple", "v_method"],
+      "correctReport": ["r_summary", "r_background", "r_findings", "r_analysis", "r_limitations", "r_recommendations", "r_sources"]
+    },
+    {
+      "id": "req_titanic",
+      "question": "What caused the Titanic to sink?",
+      "context": "A historical investigation with official inquiry records available.",
+      "difficulty": "medium",
+      "correctPlan": ["p_topic", "p_context", "p_primary", "p_official", "p_crosscheck", "p_timeframe"],
+      "correctSources": ["s_gov", "s_court", "s_book", "s_paper", "s_expert"],
+      "correctValidation": ["v_relevant", "v_official", "v_evidence", "v_credible", "v_multiple"],
+      "correctReport": ["r_summary", "r_background", "r_timeline", "r_findings", "r_evidence", "r_conclusion", "r_sources"]
+    },
+    {
+      "id": "req_climate",
+      "question": "Is climate change caused by human activity?",
+      "context": "Separate scientific consensus from manufactured controversy.",
+      "difficulty": "medium",
+      "correctPlan": ["p_topic", "p_authoritative", "p_quant", "p_evidence", "p_bias", "p_crosscheck", "p_recency"],
+      "correctSources": ["s_journal", "s_paper", "s_gov", "s_stats", "s_ngo"],
+      "correctValidation": ["v_peer", "v_data", "v_consensus", "v_method", "v_credible", "v_recent"],
+      "correctReport": ["r_summary", "r_background", "r_method", "r_findings", "r_evidence", "r_conclusion", "r_sources"]
+    },
+    {
+      "id": "req_deepseek_chatgpt",
+      "question": "How does DeepSeek compare to ChatGPT?",
+      "context": "Technical model comparison for an engineering team.",
+      "difficulty": "medium",
+      "correctPlan": ["p_topic", "p_questions", "p_recency", "p_quant", "p_crosscheck", "p_bias"],
+      "correctSources": ["s_docs", "s_benchmark", "s_paper", "s_official", "s_news"],
+      "correctValidation": ["v_relevant", "v_recent", "v_data", "v_method", "v_neutral"],
+      "correctReport": ["r_summary", "r_method", "r_findings", "r_analysis", "r_limitations", "r_conclusion", "r_sources"]
+    },
+    {
+      "id": "req_eu_ai_act",
+      "question": "What are the latest obligations under the EU AI Act?",
+      "context": "Compliance research. The legal text is the ground truth.",
+      "difficulty": "hard",
+      "correctPlan": ["p_topic", "p_legal", "p_official", "p_recency", "p_timeframe", "p_experts"],
+      "correctSources": ["s_gov", "s_official", "s_court", "s_standards", "s_expert"],
+      "correctValidation": ["v_official", "v_recent", "v_relevant", "v_author", "v_credible"],
+      "correctReport": ["r_summary", "r_background", "r_findings", "r_timeline", "r_recommendations", "r_sources"]
+    },
+    {
+      "id": "req_four_day_week",
+      "question": "Should companies adopt a four-day workweek?",
+      "context": "HR strategy question backed by real pilot programmes.",
+      "difficulty": "medium",
+      "correctPlan": ["p_topic", "p_questions", "p_quant", "p_viewpoints", "p_evidence", "p_bias"],
+      "correctSources": ["s_paper", "s_ngo", "s_stats", "s_news", "s_expert"],
+      "correctValidation": ["v_relevant", "v_data", "v_method", "v_neutral", "v_multiple"],
+      "correctReport": ["r_summary", "r_background", "r_findings", "r_analysis", "r_limitations", "r_recommendations", "r_sources"]
+    },
+    {
+      "id": "req_remote_work",
+      "question": "Does remote work increase or decrease productivity?",
+      "context": "Contradictory studies exist. Methodology decides the answer.",
+      "difficulty": "hard",
+      "correctPlan": ["p_topic", "p_questions", "p_quant", "p_viewpoints", "p_bias", "p_crosscheck", "p_timeframe"],
+      "correctSources": ["s_paper", "s_journal", "s_stats", "s_ngo", "s_expert"],
+      "correctValidation": ["v_method", "v_data", "v_peer", "v_neutral", "v_multiple", "v_recent"],
+      "correctReport": ["r_summary", "r_method", "r_findings", "r_analysis", "r_limitations", "r_conclusion", "r_sources"]
+    },
+    {
+      "id": "req_vaccine_safety",
+      "question": "Are mRNA vaccines safe for healthy adults?",
+      "context": "High-stakes health question. Only clinical evidence counts.",
+      "difficulty": "hard",
+      "correctPlan": ["p_topic", "p_authoritative", "p_evidence", "p_quant", "p_crosscheck", "p_recency", "p_bias"],
+      "correctSources": ["s_journal", "s_gov", "s_paper", "s_stats", "s_expert"],
+      "correctValidation": ["v_peer", "v_official", "v_data", "v_method", "v_consensus", "v_recent"],
+      "correctReport": ["r_summary", "r_method", "r_findings", "r_evidence", "r_limitations", "r_conclusion", "r_sources"]
+    },
+    {
+      "id": "req_crypto_egypt",
+      "question": "Is cryptocurrency trading legal in Egypt?",
+      "context": "Jurisdiction-specific legal status. Regulations change.",
+      "difficulty": "medium",
+      "correctPlan": ["p_topic", "p_legal", "p_official", "p_recency", "p_timeframe", "p_crosscheck"],
+      "correctSources": ["s_gov", "s_official", "s_court", "s_news", "s_expert"],
+      "correctValidation": ["v_official", "v_recent", "v_relevant", "v_credible", "v_multiple"],
+      "correctReport": ["r_summary", "r_background", "r_findings", "r_evidence", "r_conclusion", "r_sources"]
+    },
+    {
+      "id": "req_gerd",
+      "question": "What is the current status of the Grand Ethiopian Renaissance Dam negotiations?",
+      "context": "A live geopolitical file with three governments telling different stories.",
+      "difficulty": "hard",
+      "correctPlan": ["p_topic", "p_context", "p_official", "p_viewpoints", "p_bias", "p_recency", "p_crosscheck"],
+      "correctSources": ["s_gov", "s_official", "s_news", "s_ngo", "s_expert"],
+      "correctValidation": ["v_official", "v_recent", "v_multiple", "v_neutral", "v_relevant"],
+      "correctReport": ["r_summary", "r_background", "r_timeline", "r_findings", "r_analysis", "r_conclusion", "r_sources"]
+    },
+    {
+      "id": "req_coffee",
+      "question": "Is drinking coffee daily good or bad for your health?",
+      "context": "Nutrition science: every headline says the opposite of the last one.",
+      "difficulty": "medium",
+      "correctPlan": ["p_topic", "p_questions", "p_quant", "p_viewpoints", "p_evidence", "p_bias"],
+      "correctSources": ["s_journal", "s_paper", "s_gov", "s_expert", "s_stats"],
+      "correctValidation": ["v_peer", "v_method", "v_data", "v_consensus", "v_neutral"],
+      "correctReport": ["r_summary", "r_method", "r_findings", "r_limitations", "r_conclusion", "r_sources"]
+    },
+    {
+      "id": "req_ai_jobs",
+      "question": "Will AI eliminate more jobs than it creates?",
+      "context": "Economic forecasting question. Predictions are not evidence.",
+      "difficulty": "hard",
+      "correctPlan": ["p_topic", "p_questions", "p_quant", "p_viewpoints", "p_timeframe", "p_bias", "p_experts"],
+      "correctSources": ["s_paper", "s_stats", "s_ngo", "s_gov", "s_expert"],
+      "correctValidation": ["v_method", "v_data", "v_neutral", "v_multiple", "v_author", "v_recent"],
+      "correctReport": ["r_summary", "r_background", "r_method", "r_findings", "r_analysis", "r_limitations", "r_recommendations", "r_sources"]
+    },
+    {
+      "id": "req_prog_language",
+      "question": "Which programming language should a new backend team standardise on?",
+      "context": "An engineering decision, not a religious war.",
+      "difficulty": "medium",
+      "correctPlan": ["p_topic", "p_questions", "p_quant", "p_viewpoints", "p_experts", "p_recency"],
+      "correctSources": ["s_docs", "s_benchmark", "s_stats", "s_stackoverflow", "s_expert"],
+      "correctValidation": ["v_relevant", "v_recent", "v_data", "v_neutral", "v_multiple"],
+      "correctReport": ["r_summary", "r_findings", "r_analysis", "r_limitations", "r_recommendations", "r_sources"]
+    },
+    {
+      "id": "req_mars",
+      "question": "Is a permanent human colony on Mars feasible this century?",
+      "context": "Distinguish engineering reality from marketing timelines.",
+      "difficulty": "hard",
+      "correctPlan": ["p_topic", "p_questions", "p_authoritative", "p_evidence", "p_bias", "p_timeframe", "p_experts"],
+      "correctSources": ["s_paper", "s_gov", "s_journal", "s_expert", "s_official"],
+      "correctValidation": ["v_peer", "v_method", "v_evidence", "v_neutral", "v_author"],
+      "correctReport": ["r_summary", "r_background", "r_findings", "r_analysis", "r_limitations", "r_conclusion", "r_sources"]
+    },
+    {
+      "id": "req_social_media_teens",
+      "question": "Does social media harm teenage mental health?",
+      "context": "Correlation is everywhere. Causation is the hard part.",
+      "difficulty": "hard",
+      "correctPlan": ["p_topic", "p_questions", "p_quant", "p_viewpoints", "p_evidence", "p_bias", "p_crosscheck"],
+      "correctSources": ["s_journal", "s_paper", "s_gov", "s_ngo", "s_stats"],
+      "correctValidation": ["v_peer", "v_method", "v_data", "v_multiple", "v_neutral", "v_recent"],
+      "correctReport": ["r_summary", "r_background", "r_method", "r_findings", "r_limitations", "r_recommendations", "r_sources"]
+    },
+    {
+      "id": "req_green_hydrogen",
+      "question": "Is green hydrogen commercially viable for heavy industry?",
+      "context": "Energy transition business case. Follow the cost curves.",
+      "difficulty": "hard",
+      "correctPlan": ["p_topic", "p_questions", "p_quant", "p_recency", "p_bias", "p_experts", "p_evidence"],
+      "correctSources": ["s_paper", "s_gov", "s_stats", "s_ngo", "s_standards", "s_company"],
+      "correctValidation": ["v_data", "v_recent", "v_method", "v_neutral", "v_credible", "v_multiple"],
+      "correctReport": ["r_summary", "r_background", "r_findings", "r_analysis", "r_limitations", "r_recommendations", "r_sources"]
+    }
+  ],
+
+  "loadingMessages": [
+    "Spinning up agent containers...",
+    "Negotiating with the rate limiter...",
+    "Compiling a plan nobody asked for...",
+    "Politely ignoring the sponsored results...",
+    "Asking the internet to behave...",
+    "Counting tokens like they're calories...",
+    "Waking the validator. It was already awake.",
+    "Formatting bullet points into more bullet points..."
+  ],
+
+  "celebrationMessages": [
+    "Workflow complete. No hallucinations detected.",
+    "Four agents. One pipeline. Zero meltdowns.",
+    "The humans have out-searched the machines.",
+    "Report shipped. Stakeholders notified.",
+    "Deep Search: successfully deep, mostly searched."
+  ]
+}
