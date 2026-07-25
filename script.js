@@ -531,6 +531,8 @@
       return {
         kind: 'handoff',
         fromRole: DataLoader.role(previousRoleId),
+        // selection is stored in pick order, which for an ordered stage is the answer.
+        ordered: this.isOrdered(previousRoleId),
         items: previous.selection.map((id) => DataLoader.optionById(previousRoleId, id))
       };
     },
@@ -923,7 +925,8 @@
           <p class="inbox__context">This is everything you are allowed to see. The original question is not yours to read.</p>
           <div class="inbox__chips">
             ${inbox.items.length
-              ? inbox.items.map((item) => `<span class="chip">${esc(item.icon || '•')} ${esc(item.label)}</span>`).join('')
+              ? inbox.items.map((item, i) =>
+                  `<span class="chip">${inbox.ordered ? (i + 1) + '.' : esc(item.icon || '•')} ${esc(item.label)}</span>`).join('')
               : '<span class="chip chip--muted">The previous agent sent nothing. Good luck.</span>'}
           </div>
         </div>`;

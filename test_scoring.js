@@ -28,4 +28,16 @@ assert.ok(scrambled.orderAccuracy < 1, 'reversed order scores worse');
 assert.ok(scrambled.score < right.score, 'wrong order costs points');
 assert.ok(scrambled.score >= right.score * 0.75, 'order caps the loss at 25%');
 
+// The Searcher's inbox must show the plan in the Planner's pick order.
+const { Store } = window.__DSC;
+const team = Store.createSession({
+  teams: [{ name: 'T', requestId: 'req_egypt_argentina' }], maxPlayers: 4, durationMinutes: 5
+}).teams[0];
+team.stages.planner.selection = ['p_bias', 'p_topic', 'p_crosscheck'];
+
+const inbox = Engine.inboxFor(team, 'searcher');
+assert.ok(inbox.ordered, 'a plan handoff is flagged ordered');
+assert.deepStrictEqual(inbox.items.map((i) => i.id), team.stages.planner.selection, 'pick order kept');
+assert.ok(!Engine.inboxFor(team, 'validator').ordered, 'a source handoff is not ordered');
+
 console.log('ok');
