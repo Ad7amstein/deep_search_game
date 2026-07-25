@@ -40,19 +40,34 @@ assert.ok(inbox.ordered, 'a plan handoff is flagged ordered');
 assert.deepStrictEqual(inbox.items.map((i) => i.id), team.stages.planner.selection, 'pick order kept');
 assert.ok(!Engine.inboxFor(team, 'validator').ordered, 'a source handoff is not ordered');
 
-// The Searcher's answer key comes from the plan, not from the request.
+// Derived keys come from the stage before, not from the request.
 team.stages.planner.selection = ['p_experts', 'p_legal', 'p_bias'];
 assert.deepStrictEqual(Engine.correctIdsFor(team, 'searcher').sort(),
   ['s_book', 's_court', 's_expert', 's_standards'], 'plan steps imply their source kinds');
 
-// Every request's ideal plan must imply a workable set of sources.
+team.stages.searcher.selection = ['s_paper', 's_company'];
+assert.deepStrictEqual(Engine.correctIdsFor(team, 'validator').sort(),
+  ['v_method', 'v_neutral', 'v_peer'], 'sources imply the checks they warrant');
+
+// Playing each stage perfectly must leave the next one workable, all the way down.
+const cards = DataLoader.data.settings.cardsPerStage;
 for (const req of DataLoader.data.researchRequests) {
   team.stages.planner.selection = req.correctPlan;
-  const n = Engine.correctIdsFor(team, 'searcher').length;
-  assert.ok(n >= 4 && n < DataLoader.data.settings.cardsPerStage, `${req.id} implies ${n} sources`);
+  const sources = Engine.correctIdsFor(team, 'searcher');
+  team.stages.searcher.selection = sources;
+  const checks = Engine.correctIdsFor(team, 'validator');
+  assert.ok(sources.length >= 4 && sources.length < cards, `${req.id}: ${sources.length} sources`);
+  assert.ok(checks.length >= 4 && checks.length < cards, `${req.id}: ${checks.length} checks`);
 }
 
-// A plan of pure method steps calls for nothing, so nothing can be right.
+// Every non-trap option must be reachable, or it is a permanent wrong answer.
+for (const [from, pool] of [['plannerSteps', 'sources'], ['sources', 'validationCriteria']]) {
+  const reachable = new Set(DataLoader.data[from].flatMap((o) => o.implies || []));
+  const orphans = DataLoader.data[pool].filter((o) => !o.trap && !reachable.has(o.id)).map((o) => o.id);
+  assert.deepStrictEqual(orphans, [], `unreachable ${pool}`);
+}
+
+// A handoff that implies nothing leaves nothing to get right.
 team.stages.planner.selection = ['p_topic', 'p_bias'];
 assert.deepStrictEqual(Engine.correctIdsFor(team, 'searcher'), [], 'no sources implied');
 assert.strictEqual(Scoring.scoreStage('searcher', ['s_news'], []).score, 0, 'empty key scores 0, not NaN');

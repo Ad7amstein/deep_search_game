@@ -120,21 +120,35 @@ Add an object to `researchRequests`. It references option IDs from the shared po
   "question": "Should offices ban internal email?",
   "context": "One line of framing shown to the Planner only.",
   "difficulty": "medium",
-  "correctPlan":       ["p_topic", "p_questions", "p_quant", "p_viewpoints"],
-  "correctValidation": ["v_relevant", "v_method", "v_data", "v_neutral"],
-  "correctReport":     ["r_summary", "r_findings", "r_analysis", "r_conclusion", "r_sources"]
+  "correctPlan":   ["p_topic", "p_questions", "p_quant", "p_viewpoints"],
+  "correctReport": ["r_summary", "r_findings", "r_analysis", "r_conclusion", "r_sources"]
 }
 ```
 
 `correctPlan` and `correctReport` are **ordered** — the array order is the ideal search sequence / report structure.
 
-There is no `correctSources`. The Searcher's answer key is **derived** from the plan the Planner actually submitted: each entry in `plannerSteps` carries a `sources` list naming the source kinds it calls for, and the key is their union. The Searcher never sees the question, so the plan has to be sufficient on its own — deriving the key guarantees it is, and means a plan and its sources can never drift apart. Steps that are pure method (`p_crosscheck`, `p_bias`) carry `"sources": []` and contribute nothing.
+### Derived answer keys
+
+There is no `correctSources` or `correctValidation`. Only the two ends of the pipeline are authored per request; the middle two are **derived** from what the stage before them actually submitted:
+
+```
+question → correctPlan → plannerSteps.implies → sources.implies → correctReport
+             (authored)      (Searcher's key)   (Validator's key)    (authored)
+```
+
+Every option carries an `implies` list naming what it obliges the next agent to do — a plan step names the source kinds it calls for, a source names the checks its weaknesses demand. The key is the union over the upstream picks.
+
+Only the Planner sees the question, so each handoff has to be sufficient on its own. Deriving the key guarantees it is, and means the two sides can never drift apart. Options that imply nothing (`p_crosscheck`, `p_bias`) carry `"implies": []` and contribute nothing; a handoff that implies nothing at all scores 0.
+
+Each option's `hint` is shown on its chip in the next agent's inbox. That hint is the only clue to what the option implies, so it should gesture at the answer without naming it — `s_paper` hints *"only as good as its method — and whether anyone reviewed it"*, which points at `v_method` and `v_peer`.
 
 Ships with **20 requests** covering sports refereeing, flat-earth claims, public figures, corporate research, EV policy, the Titanic, climate change, DeepSeek vs ChatGPT, the EU AI Act, the four-day workweek, remote work, vaccine safety, crypto regulation, the GERD dam, coffee and health, AI and jobs, language choice, Mars, teen social media, and green hydrogen.
 
 ### Adding an option
 
-Append to `plannerSteps`, `sources`, `validationCriteria` or `reportSections`. Mark bad options with `"trap": true` so they read as distractors — any option not listed in a request's `correct*` array is scored as wrong if selected. A new `plannerStep` needs a `sources` list (possibly empty) and a `hint`: the hint is shown to the Searcher and is the only clue to which sources the step means.
+Append to `plannerSteps`, `sources`, `validationCriteria` or `reportSections`. Mark bad options with `"trap": true` so they read as distractors — any option not in the stage's answer key is scored as wrong if selected.
+
+New `plannerSteps` and `sources` need an `implies` list (possibly empty) and a `hint`. Every non-trap `source` must be implied by some plan step, and every non-trap `validationCriteria` by some source — otherwise it can never be a right answer. `node test_scoring.js` checks this, along with the key sizes.
 
 Each stage shows `settings.cardsPerStage` cards: every correct option, topped up with distractors. The mix is shuffled with a **seeded** PRNG keyed on team + role, so the layout is stable across re-renders and reloads but differs between teams.
 

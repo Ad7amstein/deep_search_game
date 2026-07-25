@@ -105,23 +105,23 @@
   ],
 
   "plannerSteps": [
-    { "id": "p_topic", "label": "Identify the core topic", "hint": "Define exactly what is being asked", "sources": [] },
-    { "id": "p_questions", "label": "Break into sub-questions", "hint": "Decompose before searching", "sources": [] },
-    { "id": "p_authoritative", "label": "Find authoritative sources", "hint": "Peer-reviewed and institutional publishing", "sources": ["s_journal", "s_paper", "s_gov"] },
-    { "id": "p_viewpoints", "label": "Compare opposing viewpoints", "hint": "Reporting and advocacy from both sides", "sources": ["s_news", "s_ngo"] },
-    { "id": "p_recency", "label": "Check recency of information", "hint": "Whoever publishes fastest", "sources": ["s_news", "s_pressrelease"] },
-    { "id": "p_evidence", "label": "Verify evidence behind claims", "hint": "Studies and figures behind the claim", "sources": ["s_paper", "s_stats"] },
-    { "id": "p_primary", "label": "Locate primary sources", "hint": "The original document itself", "sources": ["s_official", "s_gov", "s_court"] },
-    { "id": "p_crosscheck", "label": "Cross-check facts across sources", "hint": "Two independent confirmations", "sources": [] },
-    { "id": "p_bias", "label": "Note conflicts of interest", "hint": "Who benefits from this claim?", "sources": [] },
-    { "id": "p_timeframe", "label": "Scope the timeframe", "hint": "Bound the period under study", "sources": [] },
-    { "id": "p_quant", "label": "Collect quantitative data", "hint": "Measured numbers, not adjectives", "sources": ["s_stats", "s_benchmark"] },
-    { "id": "p_official", "label": "Review official statements and records", "hint": "Straight from the institution", "sources": ["s_official", "s_pressrelease", "s_company"] },
-    { "id": "p_experts", "label": "Consult domain experts", "hint": "People who do this for a living", "sources": ["s_expert", "s_book"] },
-    { "id": "p_legal", "label": "Read the regulatory or legal text", "hint": "Rulings, statutes and standards", "sources": ["s_court", "s_standards"] },
-    { "id": "p_context", "label": "Establish historical context", "hint": "Long-form background, not headlines", "sources": ["s_book", "s_wikipedia"] },
-    { "id": "p_technical", "label": "Read the technical documentation", "hint": "What the builders actually wrote down", "sources": ["s_docs", "s_stackoverflow"] },
-    { "id": "p_summarize", "label": "Summarize findings neutrally", "hint": "Report, don't campaign", "sources": [] },
+    { "id": "p_topic", "label": "Identify the core topic", "hint": "Define exactly what is being asked", "implies": [] },
+    { "id": "p_questions", "label": "Break into sub-questions", "hint": "Decompose before searching", "implies": [] },
+    { "id": "p_authoritative", "label": "Find authoritative sources", "hint": "Peer-reviewed and institutional publishing", "implies": ["s_journal", "s_paper", "s_gov"] },
+    { "id": "p_viewpoints", "label": "Compare opposing viewpoints", "hint": "Reporting and advocacy from both sides", "implies": ["s_news", "s_ngo"] },
+    { "id": "p_recency", "label": "Check recency of information", "hint": "Whoever publishes fastest", "implies": ["s_news", "s_pressrelease"] },
+    { "id": "p_evidence", "label": "Verify evidence behind claims", "hint": "Studies and figures behind the claim", "implies": ["s_paper", "s_stats"] },
+    { "id": "p_primary", "label": "Locate primary sources", "hint": "The original document itself", "implies": ["s_official", "s_gov", "s_court"] },
+    { "id": "p_crosscheck", "label": "Cross-check facts across sources", "hint": "Two independent confirmations", "implies": [] },
+    { "id": "p_bias", "label": "Note conflicts of interest", "hint": "Who benefits from this claim?", "implies": [] },
+    { "id": "p_timeframe", "label": "Scope the timeframe", "hint": "Bound the period under study", "implies": [] },
+    { "id": "p_quant", "label": "Collect quantitative data", "hint": "Measured numbers, not adjectives", "implies": ["s_stats", "s_benchmark"] },
+    { "id": "p_official", "label": "Review official statements and records", "hint": "Straight from the institution", "implies": ["s_official", "s_pressrelease", "s_company"] },
+    { "id": "p_experts", "label": "Consult domain experts", "hint": "People who do this for a living", "implies": ["s_expert", "s_book"] },
+    { "id": "p_legal", "label": "Read the regulatory or legal text", "hint": "Rulings, statutes and standards", "implies": ["s_court", "s_standards"] },
+    { "id": "p_context", "label": "Establish historical context", "hint": "Long-form background, not headlines", "implies": ["s_book", "s_wikipedia"] },
+    { "id": "p_technical", "label": "Read the technical documentation", "hint": "What the builders actually wrote down", "implies": ["s_docs", "s_stackoverflow"] },
+    { "id": "p_summarize", "label": "Summarize findings neutrally", "hint": "Report, don't campaign", "implies": [] },
     { "id": "p_reddit_only", "label": "Search Reddit only", "hint": "", "trap": true },
     { "id": "p_ignore_dates", "label": "Ignore dates entirely", "hint": "", "trap": true },
     { "id": "p_random_blogs", "label": "Use random blogs as the main source", "hint": "", "trap": true },
@@ -133,24 +133,23 @@
   ],
 
   "sources": [
-    { "id": "s_official", "label": "Official Website", "icon": "🏛️" },
-    { "id": "s_gov", "label": "Government Report", "icon": "📋" },
-    { "id": "s_paper", "label": "Research Paper", "icon": "🔬" },
-    { "id": "s_journal", "label": "Peer-Reviewed Journal", "icon": "📚" },
-    { "id": "s_news", "label": "Reputable News Agency", "icon": "📰" },
-    { "id": "s_wikipedia", "label": "Wikipedia", "icon": "🌐" },
-    { "id": "s_company", "label": "Company Website", "icon": "🏢" },
-    { "id": "s_pressrelease", "label": "Press Release", "icon": "📢" },
-    { "id": "s_court", "label": "Court / Legal Document", "icon": "⚖️" },
-    { "id": "s_standards", "label": "Standards Body Publication", "icon": "📐" },
-    { "id": "s_ngo", "label": "NGO / Think Tank Report", "icon": "🕊️" },
-    { "id": "s_expert", "label": "Expert Interview", "icon": "🎓" },
-    { "id": "s_book", "label": "Published Book", "icon": "📖" },
-    { "id": "s_federation", "label": "Sports Federation Records", "icon": "🏟️" },
-    { "id": "s_stats", "label": "Statistical Database", "icon": "📈" },
-    { "id": "s_stackoverflow", "label": "Stack Overflow", "icon": "💻" },
-    { "id": "s_docs", "label": "Technical Documentation", "icon": "📄" },
-    { "id": "s_benchmark", "label": "Independent Benchmark", "icon": "⏱️" },
+    { "id": "s_official", "label": "Official Website", "icon": "🏛️", "hint": "The institution's own account of itself", "implies": ["v_official", "v_neutral"] },
+    { "id": "s_gov", "label": "Government Report", "icon": "📋", "hint": "Authoritative, but the numbers still need checking", "implies": ["v_official"] },
+    { "id": "s_paper", "label": "Research Paper", "icon": "🔬", "hint": "Only as good as its method — and whether anyone reviewed it", "implies": ["v_peer", "v_method"] },
+    { "id": "s_journal", "label": "Peer-Reviewed Journal", "icon": "📚", "hint": "Reviewed, but one study is not the field", "implies": ["v_peer"] },
+    { "id": "s_news", "label": "Reputable News Agency", "icon": "📰", "hint": "Fast, and first reports are often alone", "implies": ["v_multiple"] },
+    { "id": "s_wikipedia", "label": "Wikipedia", "icon": "🌐", "hint": "A starting point that anyone can edit", "implies": ["v_relevant", "v_multiple"] },
+    { "id": "s_company", "label": "Company Website", "icon": "🏢", "hint": "Written by people with something to sell", "implies": ["v_neutral"] },
+    { "id": "s_pressrelease", "label": "Press Release", "icon": "📢", "hint": "Today's news, written by the interested party", "implies": ["v_neutral", "v_recent"] },
+    { "id": "s_court", "label": "Court / Legal Document", "icon": "⚖️", "hint": "The record itself, in its own language", "implies": ["v_official"] },
+    { "id": "s_standards", "label": "Standards Body Publication", "icon": "📐", "hint": "What the field formally agreed to", "implies": ["v_official", "v_consensus"] },
+    { "id": "s_ngo", "label": "NGO / Think Tank Report", "icon": "🕊️", "hint": "Researched, but published to persuade", "implies": ["v_neutral", "v_evidence"] },
+    { "id": "s_expert", "label": "Expert Interview", "icon": "🎓", "hint": "One named person, speaking for themselves", "implies": ["v_credible"] },
+    { "id": "s_book", "label": "Published Book", "icon": "📖", "hint": "Deep, edited, and written some years ago", "implies": ["v_author"] },
+    { "id": "s_stats", "label": "Statistical Database", "icon": "📈", "hint": "Numbers mean nothing without how they were counted", "implies": ["v_data"] },
+    { "id": "s_stackoverflow", "label": "Stack Overflow", "icon": "💻", "hint": "Accepted answers go stale quietly", "implies": ["v_recent"] },
+    { "id": "s_docs", "label": "Technical Documentation", "icon": "📄", "hint": "Straight from the builders — of whichever version", "implies": ["v_relevant"] },
+    { "id": "s_benchmark", "label": "Independent Benchmark", "icon": "⏱️", "hint": "A measurement is only as good as its setup", "implies": ["v_method"] },
     { "id": "s_reddit", "label": "Reddit Thread", "icon": "👽", "trap": true },
     { "id": "s_blog", "label": "Random Blog", "icon": "✍️", "trap": true },
     { "id": "s_tiktok", "label": "TikTok Video", "icon": "🎵", "trap": true },
@@ -211,7 +210,6 @@
       "context": "A contested result has split social media. Determine what actually happened on the pitch.",
       "difficulty": "medium",
       "correctPlan": ["p_topic", "p_official", "p_evidence", "p_viewpoints", "p_crosscheck", "p_bias"],
-      "correctValidation": ["v_relevant", "v_official", "v_evidence", "v_multiple", "v_neutral"],
       "correctReport": ["r_summary", "r_background", "r_findings", "r_evidence", "r_conclusion", "r_sources"]
     },
     {
@@ -220,7 +218,6 @@
       "context": "A settled scientific question that still generates noise online.",
       "difficulty": "easy",
       "correctPlan": ["p_topic", "p_authoritative", "p_evidence", "p_primary", "p_crosscheck", "p_summarize"],
-      "correctValidation": ["v_credible", "v_peer", "v_evidence", "v_consensus", "v_method"],
       "correctReport": ["r_summary", "r_findings", "r_evidence", "r_conclusion", "r_sources"]
     },
     {
@@ -229,7 +226,6 @@
       "context": "Build an accurate, current profile of a public figure.",
       "difficulty": "easy",
       "correctPlan": ["p_topic", "p_official", "p_recency", "p_crosscheck", "p_bias", "p_summarize"],
-      "correctValidation": ["v_relevant", "v_recent", "v_credible", "v_multiple", "v_neutral"],
       "correctReport": ["r_summary", "r_background", "r_findings", "r_timeline", "r_conclusion", "r_sources"]
     },
     {
@@ -238,7 +234,6 @@
       "context": "Corporate research brief for a new joiner.",
       "difficulty": "easy",
       "correctPlan": ["p_topic", "p_official", "p_quant", "p_recency", "p_crosscheck", "p_summarize"],
-      "correctValidation": ["v_relevant", "v_official", "v_recent", "v_data", "v_multiple"],
       "correctReport": ["r_summary", "r_background", "r_findings", "r_evidence", "r_conclusion", "r_sources"]
     },
     {
@@ -247,7 +242,6 @@
       "context": "A policy debate with strong lobbying on both sides.",
       "difficulty": "hard",
       "correctPlan": ["p_topic", "p_questions", "p_viewpoints", "p_quant", "p_bias", "p_recency", "p_evidence"],
-      "correctValidation": ["v_relevant", "v_recent", "v_data", "v_neutral", "v_multiple", "v_method"],
       "correctReport": ["r_summary", "r_background", "r_findings", "r_analysis", "r_limitations", "r_recommendations", "r_sources"]
     },
     {
@@ -256,7 +250,6 @@
       "context": "A historical investigation with official inquiry records available.",
       "difficulty": "medium",
       "correctPlan": ["p_topic", "p_context", "p_primary", "p_official", "p_crosscheck", "p_timeframe"],
-      "correctValidation": ["v_relevant", "v_official", "v_evidence", "v_credible", "v_multiple"],
       "correctReport": ["r_summary", "r_background", "r_timeline", "r_findings", "r_evidence", "r_conclusion", "r_sources"]
     },
     {
@@ -265,7 +258,6 @@
       "context": "Separate scientific consensus from manufactured controversy.",
       "difficulty": "medium",
       "correctPlan": ["p_topic", "p_authoritative", "p_quant", "p_evidence", "p_bias", "p_crosscheck", "p_recency"],
-      "correctValidation": ["v_peer", "v_data", "v_consensus", "v_method", "v_credible", "v_recent"],
       "correctReport": ["r_summary", "r_background", "r_method", "r_findings", "r_evidence", "r_conclusion", "r_sources"]
     },
     {
@@ -274,7 +266,6 @@
       "context": "Technical model comparison for an engineering team.",
       "difficulty": "medium",
       "correctPlan": ["p_topic", "p_questions", "p_technical", "p_quant", "p_crosscheck", "p_bias"],
-      "correctValidation": ["v_relevant", "v_recent", "v_data", "v_method", "v_neutral"],
       "correctReport": ["r_summary", "r_method", "r_findings", "r_analysis", "r_limitations", "r_conclusion", "r_sources"]
     },
     {
@@ -283,7 +274,6 @@
       "context": "Compliance research. The legal text is the ground truth.",
       "difficulty": "hard",
       "correctPlan": ["p_topic", "p_legal", "p_official", "p_recency", "p_timeframe", "p_experts"],
-      "correctValidation": ["v_official", "v_recent", "v_relevant", "v_author", "v_credible"],
       "correctReport": ["r_summary", "r_background", "r_findings", "r_timeline", "r_recommendations", "r_sources"]
     },
     {
@@ -292,7 +282,6 @@
       "context": "HR strategy question backed by real pilot programmes.",
       "difficulty": "medium",
       "correctPlan": ["p_topic", "p_questions", "p_quant", "p_viewpoints", "p_evidence", "p_bias"],
-      "correctValidation": ["v_relevant", "v_data", "v_method", "v_neutral", "v_multiple"],
       "correctReport": ["r_summary", "r_background", "r_findings", "r_analysis", "r_limitations", "r_recommendations", "r_sources"]
     },
     {
@@ -301,7 +290,6 @@
       "context": "Contradictory studies exist. Methodology decides the answer.",
       "difficulty": "hard",
       "correctPlan": ["p_topic", "p_questions", "p_quant", "p_viewpoints", "p_bias", "p_crosscheck", "p_timeframe"],
-      "correctValidation": ["v_method", "v_data", "v_peer", "v_neutral", "v_multiple", "v_recent"],
       "correctReport": ["r_summary", "r_method", "r_findings", "r_analysis", "r_limitations", "r_conclusion", "r_sources"]
     },
     {
@@ -310,7 +298,6 @@
       "context": "High-stakes health question. Only clinical evidence counts.",
       "difficulty": "hard",
       "correctPlan": ["p_topic", "p_authoritative", "p_evidence", "p_quant", "p_crosscheck", "p_recency", "p_bias"],
-      "correctValidation": ["v_peer", "v_official", "v_data", "v_method", "v_consensus", "v_recent"],
       "correctReport": ["r_summary", "r_method", "r_findings", "r_evidence", "r_limitations", "r_conclusion", "r_sources"]
     },
     {
@@ -319,7 +306,6 @@
       "context": "Jurisdiction-specific legal status. Regulations change.",
       "difficulty": "medium",
       "correctPlan": ["p_topic", "p_legal", "p_official", "p_recency", "p_timeframe", "p_crosscheck"],
-      "correctValidation": ["v_official", "v_recent", "v_relevant", "v_credible", "v_multiple"],
       "correctReport": ["r_summary", "r_background", "r_findings", "r_evidence", "r_conclusion", "r_sources"]
     },
     {
@@ -328,7 +314,6 @@
       "context": "A live geopolitical file with three governments telling different stories.",
       "difficulty": "hard",
       "correctPlan": ["p_topic", "p_context", "p_official", "p_viewpoints", "p_bias", "p_recency", "p_crosscheck"],
-      "correctValidation": ["v_official", "v_recent", "v_multiple", "v_neutral", "v_relevant"],
       "correctReport": ["r_summary", "r_background", "r_timeline", "r_findings", "r_analysis", "r_conclusion", "r_sources"]
     },
     {
@@ -337,7 +322,6 @@
       "context": "Nutrition science: every headline says the opposite of the last one.",
       "difficulty": "medium",
       "correctPlan": ["p_topic", "p_questions", "p_quant", "p_viewpoints", "p_evidence", "p_bias"],
-      "correctValidation": ["v_peer", "v_method", "v_data", "v_consensus", "v_neutral"],
       "correctReport": ["r_summary", "r_method", "r_findings", "r_limitations", "r_conclusion", "r_sources"]
     },
     {
@@ -346,7 +330,6 @@
       "context": "Economic forecasting question. Predictions are not evidence.",
       "difficulty": "hard",
       "correctPlan": ["p_topic", "p_questions", "p_quant", "p_viewpoints", "p_timeframe", "p_bias", "p_experts"],
-      "correctValidation": ["v_method", "v_data", "v_neutral", "v_multiple", "v_author", "v_recent"],
       "correctReport": ["r_summary", "r_background", "r_method", "r_findings", "r_analysis", "r_limitations", "r_recommendations", "r_sources"]
     },
     {
@@ -355,7 +338,6 @@
       "context": "An engineering decision, not a religious war.",
       "difficulty": "medium",
       "correctPlan": ["p_topic", "p_questions", "p_technical", "p_quant", "p_viewpoints", "p_experts"],
-      "correctValidation": ["v_relevant", "v_recent", "v_data", "v_neutral", "v_multiple"],
       "correctReport": ["r_summary", "r_findings", "r_analysis", "r_limitations", "r_recommendations", "r_sources"]
     },
     {
@@ -364,7 +346,6 @@
       "context": "Distinguish engineering reality from marketing timelines.",
       "difficulty": "hard",
       "correctPlan": ["p_topic", "p_questions", "p_authoritative", "p_evidence", "p_bias", "p_timeframe", "p_experts"],
-      "correctValidation": ["v_peer", "v_method", "v_evidence", "v_neutral", "v_author"],
       "correctReport": ["r_summary", "r_background", "r_findings", "r_analysis", "r_limitations", "r_conclusion", "r_sources"]
     },
     {
@@ -373,7 +354,6 @@
       "context": "Correlation is everywhere. Causation is the hard part.",
       "difficulty": "hard",
       "correctPlan": ["p_topic", "p_questions", "p_quant", "p_viewpoints", "p_evidence", "p_bias", "p_crosscheck"],
-      "correctValidation": ["v_peer", "v_method", "v_data", "v_multiple", "v_neutral", "v_recent"],
       "correctReport": ["r_summary", "r_background", "r_method", "r_findings", "r_limitations", "r_recommendations", "r_sources"]
     },
     {
@@ -382,7 +362,6 @@
       "context": "Energy transition business case. Follow the cost curves.",
       "difficulty": "hard",
       "correctPlan": ["p_topic", "p_questions", "p_quant", "p_recency", "p_bias", "p_experts", "p_evidence"],
-      "correctValidation": ["v_data", "v_recent", "v_method", "v_neutral", "v_credible", "v_multiple"],
       "correctReport": ["r_summary", "r_background", "r_findings", "r_analysis", "r_limitations", "r_recommendations", "r_sources"]
     }
   ],

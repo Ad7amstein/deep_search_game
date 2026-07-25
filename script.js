@@ -233,11 +233,7 @@
 
     /** The `correct*` key on a research request for a given role. */
     answerKeyFor(roleId) {
-      return {
-        planner: 'correctPlan',
-        validator: 'correctValidation',
-        reporter: 'correctReport'
-      }[roleId];
+      return { planner: 'correctPlan', reporter: 'correctReport' }[roleId];
     },
 
     optionById(roleId, id) {
@@ -536,19 +532,23 @@
       };
     },
 
+    /** Stages whose answer key is derived from the stage before, not authored. */
+    DERIVED_FROM: { searcher: 'planner', validator: 'searcher' },
+
     /**
-     * The answer key for a stage. The Searcher's is not authored per request —
-     * it is the union of the source kinds called for by the plan the Planner
-     * actually submitted, so the plan alone tells the Searcher what to fetch.
+     * The answer key for a stage. A derived stage's key is the union of what
+     * the upstream picks `implies`, so the handoff alone is always enough to
+     * work out the answer — which matters because nobody downstream of the
+     * Planner ever sees the research question.
      */
     correctIdsFor(team, roleId) {
-      if (roleId === 'searcher') {
-        const plan = team.stages.planner.selection;
-        return DataLoader.data.sources
-          .filter((src) => plan.some((id) => (DataLoader.optionById('planner', id).sources || []).includes(src.id)))
-          .map((src) => src.id);
-      }
-      return DataLoader.request(team.requestId)[DataLoader.answerKeyFor(roleId)];
+      const from = this.DERIVED_FROM[roleId];
+      if (!from) return DataLoader.request(team.requestId)[DataLoader.answerKeyFor(roleId)];
+
+      const upstream = team.stages[from].selection;
+      return DataLoader.poolFor(roleId)
+        .filter((opt) => upstream.some((id) => (DataLoader.optionById(from, id).implies || []).includes(opt.id)))
+        .map((opt) => opt.id);
     },
 
     /**
