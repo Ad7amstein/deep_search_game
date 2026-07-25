@@ -121,7 +121,6 @@ Add an object to `researchRequests`. It references option IDs from the shared po
   "context": "One line of framing shown to the Planner only.",
   "difficulty": "medium",
   "correctPlan":       ["p_topic", "p_questions", "p_quant", "p_viewpoints"],
-  "correctSources":    ["s_paper", "s_stats", "s_expert", "s_ngo"],
   "correctValidation": ["v_relevant", "v_method", "v_data", "v_neutral"],
   "correctReport":     ["r_summary", "r_findings", "r_analysis", "r_conclusion", "r_sources"]
 }
@@ -129,11 +128,13 @@ Add an object to `researchRequests`. It references option IDs from the shared po
 
 `correctPlan` and `correctReport` are **ordered** — the array order is the ideal search sequence / report structure.
 
+There is no `correctSources`. The Searcher's answer key is **derived** from the plan the Planner actually submitted: each entry in `plannerSteps` carries a `sources` list naming the source kinds it calls for, and the key is their union. The Searcher never sees the question, so the plan has to be sufficient on its own — deriving the key guarantees it is, and means a plan and its sources can never drift apart. Steps that are pure method (`p_crosscheck`, `p_bias`) carry `"sources": []` and contribute nothing.
+
 Ships with **20 requests** covering sports refereeing, flat-earth claims, public figures, corporate research, EV policy, the Titanic, climate change, DeepSeek vs ChatGPT, the EU AI Act, the four-day workweek, remote work, vaccine safety, crypto regulation, the GERD dam, coffee and health, AI and jobs, language choice, Mars, teen social media, and green hydrogen.
 
 ### Adding an option
 
-Append to `plannerSteps`, `sources`, `validationCriteria` or `reportSections`. Mark bad options with `"trap": true` so they read as distractors — any option not listed in a request's `correct*` array is scored as wrong if selected.
+Append to `plannerSteps`, `sources`, `validationCriteria` or `reportSections`. Mark bad options with `"trap": true` so they read as distractors — any option not listed in a request's `correct*` array is scored as wrong if selected. A new `plannerStep` needs a `sources` list (possibly empty) and a `hint`: the hint is shown to the Searcher and is the only clue to which sources the step means.
 
 Each stage shows `settings.cardsPerStage` cards: every correct option, topped up with distractors. The mix is shuffled with a **seeded** PRNG keyed on team + role, so the layout is stable across re-renders and reloads but differs between teams.
 

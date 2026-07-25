@@ -40,4 +40,21 @@ assert.ok(inbox.ordered, 'a plan handoff is flagged ordered');
 assert.deepStrictEqual(inbox.items.map((i) => i.id), team.stages.planner.selection, 'pick order kept');
 assert.ok(!Engine.inboxFor(team, 'validator').ordered, 'a source handoff is not ordered');
 
+// The Searcher's answer key comes from the plan, not from the request.
+team.stages.planner.selection = ['p_experts', 'p_legal', 'p_bias'];
+assert.deepStrictEqual(Engine.correctIdsFor(team, 'searcher').sort(),
+  ['s_book', 's_court', 's_expert', 's_standards'], 'plan steps imply their source kinds');
+
+// Every request's ideal plan must imply a workable set of sources.
+for (const req of DataLoader.data.researchRequests) {
+  team.stages.planner.selection = req.correctPlan;
+  const n = Engine.correctIdsFor(team, 'searcher').length;
+  assert.ok(n >= 4 && n < DataLoader.data.settings.cardsPerStage, `${req.id} implies ${n} sources`);
+}
+
+// A plan of pure method steps calls for nothing, so nothing can be right.
+team.stages.planner.selection = ['p_topic', 'p_bias'];
+assert.deepStrictEqual(Engine.correctIdsFor(team, 'searcher'), [], 'no sources implied');
+assert.strictEqual(Scoring.scoreStage('searcher', ['s_news'], []).score, 0, 'empty key scores 0, not NaN');
+
 console.log('ok');

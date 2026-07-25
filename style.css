@@ -648,6 +648,7 @@ button.agent-card:hover:not(:disabled)::before { transform: scaleY(1); }
   box-shadow: var(--sh-sm);
 }
 .chip--muted { background: var(--surface-alt); color: var(--ink-soft); box-shadow: none; }
+.chip__hint { color: var(--ink-soft); font-weight: 400; font-style: italic; }
 
 .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(228px, 1fr)); gap: 13px; }
 

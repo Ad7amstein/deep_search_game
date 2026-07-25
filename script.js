@@ -235,7 +235,6 @@
     answerKeyFor(roleId) {
       return {
         planner: 'correctPlan',
-        searcher: 'correctSources',
         validator: 'correctValidation',
         reporter: 'correctReport'
       }[roleId];
@@ -538,14 +537,28 @@
     },
 
     /**
+     * The answer key for a stage. The Searcher's is not authored per request —
+     * it is the union of the source kinds called for by the plan the Planner
+     * actually submitted, so the plan alone tells the Searcher what to fetch.
+     */
+    correctIdsFor(team, roleId) {
+      if (roleId === 'searcher') {
+        const plan = team.stages.planner.selection;
+        return DataLoader.data.sources
+          .filter((src) => plan.some((id) => (DataLoader.optionById('planner', id).sources || []).includes(src.id)))
+          .map((src) => src.id);
+      }
+      return DataLoader.request(team.requestId)[DataLoader.answerKeyFor(roleId)];
+    },
+
+    /**
      * Build the selectable card set for a stage: every correct option plus
      * enough distractors to reach `cardsPerStage`. Seeded by team + role so
      * the layout is stable across re-renders and reloads.
      */
     cardsFor(team, roleId) {
-      const request = DataLoader.request(team.requestId);
       const pool = DataLoader.poolFor(roleId);
-      const correctIds = request[DataLoader.answerKeyFor(roleId)];
+      const correctIds = this.correctIdsFor(team, roleId);
       const target = DataLoader.data.settings.cardsPerStage;
 
       const correct = pool.filter((opt) => correctIds.includes(opt.id));
@@ -583,6 +596,11 @@
       const wrong = selection.filter((id) => !correctIds.includes(id));
       const missed = correctIds.filter((id) => !selection.includes(id));
 
+      // A plan that calls for no sources at all leaves nothing to get right.
+      if (correctIds.length === 0) {
+        return { score: 0, max: cfg.pointsPerStage, hits: 0, wrong: selection.length, missed: 0,
+                 total: 0, orderAccuracy: null, hitIds: [], wrongIds: selection, missedIds: [] };
+      }
       const raw = (hits.length - wrong.length * cfg.wrongSelectionPenaltyWeight) / correctIds.length;
       let score = Utils.clamp(raw, 0, 1) * cfg.pointsPerStage;
 
@@ -926,7 +944,8 @@
           <div class="inbox__chips">
             ${inbox.items.length
               ? inbox.items.map((item, i) =>
-                  `<span class="chip">${inbox.ordered ? (i + 1) + '.' : esc(item.icon || '•')} ${esc(item.label)}</span>`).join('')
+                  `<span class="chip">${inbox.ordered ? (i + 1) + '.' : esc(item.icon || '•')} ${esc(item.label)}${
+                    item.hint ? `<small class="chip__hint">${esc(item.hint)}</small>` : ''}</span>`).join('')
               : '<span class="chip chip--muted">The previous agent sent nothing. Good luck.</span>'}
           </div>
         </div>`;
@@ -1385,8 +1404,7 @@
       }
 
       const roleId = me.role;
-      const request = DataLoader.request(team.requestId);
-      const correctIds = request[DataLoader.answerKeyFor(roleId)];
+      const correctIds = Engine.correctIdsFor(team, roleId);
       const detail = Scoring.scoreStage(roleId, this.selection.slice(), correctIds);
       const selection = this.selection.slice();
 
