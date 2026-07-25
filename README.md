@@ -69,7 +69,7 @@ Note: test-mode rules leave the database publicly writable — fine for a worksh
 
 - **Hits** — each correct option selected earns its share of the 25.
 - **Penalty** — each wrong (distractor) pick subtracts `0.75` of a correct pick's value. A stage never drops below 0.
-- **Ordering** — the Reporter alone is scored on sequence. Order accuracy is the longest common subsequence against the ideal structure, and scales the stage between 75% and 100% of what was earned.
+- **Ordering** — stages listed in `scoring.orderedStages` (Planner and Reporter) are scored on sequence too. Order accuracy is the longest common subsequence against the ideal sequence, and scales the stage between 75% and 100% of what was earned.
 - **Speed bonus** — up to `+10`, proportional to time remaining, awarded only to teams that finish. Final score is clamped to 100.
 - **Stars** — 3 at ≥90, 2 at ≥70, 1 at ≥45.
 
@@ -127,7 +127,7 @@ Add an object to `researchRequests`. It references option IDs from the shared po
 }
 ```
 
-`correctReport` is **ordered** — the array order is the ideal report structure.
+`correctPlan` and `correctReport` are **ordered** — the array order is the ideal search sequence / report structure.
 
 Ships with **20 requests** covering sports refereeing, flat-earth claims, public figures, corporate research, EV policy, the Titanic, climate change, DeepSeek vs ChatGPT, the EU AI Act, the four-day workweek, remote work, vaccine safety, crypto regulation, the GERD dam, coffee and health, AI and jobs, language choice, Mars, teen social media, and green hydrogen.
 

@@ -556,9 +556,9 @@
       return Utils.shuffle(correct.concat(distractors), rand);
     },
 
-    /** Ordering matters only for the Reporter (report structure). */
+    /** Stages whose answer key is a sequence, not just a set. */
     isOrdered(roleId) {
-      return roleId === DataLoader.data.settings.scoring.orderBonusStage;
+      return DataLoader.data.settings.scoring.orderedStages.includes(roleId);
     }
   };
 
@@ -573,7 +573,7 @@
      *   hits    — correct options selected
      *   misses  — correct options not selected
      *   wrong   — distractors selected (penalised)
-     * The Reporter additionally earns/loses a quarter of the stage on ordering.
+     * Ordered stages additionally earn/lose a quarter of the stage on sequence.
      */
     scoreStage(roleId, selection, correctIds) {
       const cfg = this.config;
@@ -1608,7 +1608,7 @@
       $('#stageFoot').innerHTML = `
         <p class="stage-foot__note">
           ${ordered
-            ? 'Order matters here — the number on each card is its position in the report.'
+            ? `Order matters here — the number on each card is its position in the ${esc(role.output)}.`
             : 'Pick every option that belongs. Wrong picks cost you points.'}
           <br><em style="color:var(--gray-500);font-style:italic">“${esc(this.stageFlavour)}”</em>
         </p>
@@ -1663,7 +1663,7 @@
 
   /* ---------- go ---------- */
   // Debug/console handle (also used by test_sync.js).
-  window.__DSC = { Utils, Store, Net, Identity, DataLoader, App };
+  window.__DSC = { Utils, Store, Net, Identity, DataLoader, Engine, Scoring, App };
 
   document.addEventListener('DOMContentLoaded', () => App.init());
 })();

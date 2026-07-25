@@ -13,7 +13,7 @@
     "scoring": {
       "pointsPerStage": 25,
       "wrongSelectionPenaltyWeight": 0.75,
-      "orderBonusStage": "reporter",
+      "orderedStages": ["planner", "reporter"],
       "maxTimeBonus": 10,
       "maxScore": 100,
       "stars": [
