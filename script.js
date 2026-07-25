@@ -1093,6 +1093,8 @@
       $('#btnCreateSession').addEventListener('click', () => this.createSession());
       $('#btnShuffleRequests').addEventListener('click', () => this.shuffleRequests());
       $('#btnStartGame').addEventListener('click', () => this.startGame());
+      $('#btnAddTime').addEventListener('click', () => this.addTime(5));
+      $('#btnEndEarly').addEventListener('click', () => this.endEarly());
       $('#btnReleaseResults').addEventListener('click', () => this.releaseResults());
       $('#btnResetSession').addEventListener('click', () => this.resetSession());
       $('#btnCopyLink').addEventListener('click', () => this.copyPlayerLink());
@@ -1438,19 +1440,49 @@
       this.render();
     },
 
-    /** Timer ran out: freeze the session and score whatever exists. */
-    handleExpiry() {
+    /** Freeze the session and score whatever exists, however it ended. */
+    endSession(endedAt) {
       const session = Store.session;
-      if (!session || session.status !== 'running') return;
+      if (!session || session.status !== 'running') return false;
       Store.update((s) => {
         s.status = 'ended';
-        s.endedAt = s.startedAt + s.durationMs;
+        s.endedAt = endedAt;
         s.teams.forEach((t) => {
           if (!t.finishedAt && Engine.isTeamComplete(t)) t.finishedAt = s.endedAt;
           t.finalScore = Scoring.finalize(t, s).total;
         });
       });
-      FX.toast("Time's up! All inputs are locked. ⏰", 'err');
+      this.render();
+      return true;
+    },
+
+    /** Timer ran out. */
+    handleExpiry() {
+      const session = Store.session;
+      if (!session) return;
+      if (this.endSession(session.startedAt + session.durationMs)) {
+        FX.toast("Time's up! All inputs are locked. ⏰", 'err');
+      }
+    },
+
+    /** Admin called it early: teams still mid-pipeline are scored as they stand. */
+    endEarly() {
+      const session = Store.session;
+      if (!session || session.status !== 'running') return;
+      const unfinished = session.teams.filter((t) => !Engine.isTeamComplete(t)).length;
+      const warning = unfinished
+        ? `${unfinished} of ${session.teams.length} teams have not finished. They will be scored on what they have submitted so far.\n\n`
+        : '';
+      if (!confirm(warning + 'End the session now for everyone?')) return;
+      if (this.endSession(Date.now())) FX.toast('Session ended. Scores are final. 🛑', 'ok');
+    },
+
+    /** Admin buys the room more time. Only meaningful while the clock runs. */
+    addTime(minutes) {
+      const session = Store.session;
+      if (!session || session.status !== 'running') return;
+      Store.update((s) => { s.durationMs += minutes * 60 * 1000; });
+      FX.toast(`+${minutes} minute${minutes > 1 ? 's' : ''} on the clock. ⏱️`, 'ok');
       this.render();
     },
 
@@ -1519,6 +1551,10 @@
       $('#btnStartGame').disabled = session.status !== 'lobby';
       $('#btnStartGame').textContent = session.status === 'lobby' ? '▶ Start Game'
         : session.status === 'running' ? '⏱ Running…' : '✓ Finished';
+
+      const running = session.status === 'running';
+      $('#btnAddTime').hidden = !running;
+      $('#btnEndEarly').hidden = !running;
 
       const released = !!session.resultsReleasedAt;
       const btnRelease = $('#btnReleaseResults');

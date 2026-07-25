@@ -40,6 +40,13 @@ Browsers block `fetch()` on `file://` URLs, so `game-data.json` cannot be read a
 5. The Planner works first. On submit, their output becomes the Searcher's input, and so on down the chain. Agents who are not active see a waiting screen and their own agent briefing.
 6. When the Reporter submits (or the timer expires, locking every input), players see a **"waiting for the host"** screen. Scores stay hidden — no per-stage feedback, no leaderboard — until the admin presses **📣 Release Results**, at which point every player's screen flips to their team's score, stars and breakdown.
 
+While the clock is running the admin also gets two controls:
+
+- **+5 min** — adds five minutes to the shared timer. Every player's clock jumps immediately. Press it as often as you need.
+- **🛑 End Now** — ends the session for everyone before the timer runs out, without waiting for teams to finish. It says how many teams are still mid-pipeline before you confirm. Inputs lock, every team is scored on what it has submitted so far, and *Release Results* becomes available as usual.
+
+Neither is a separate mode: ending early is the same code path as the timer expiring, so the room lands in the same state either way.
+
 ### Playing across devices (online multiplayer)
 
 Out of the box there is no server, so "multiplayer" means **one browser profile on one machine**: session state lives in `localStorage` and syncs across tabs via the `storage` event. That still suits the one-laptop-per-team workshop setup.
